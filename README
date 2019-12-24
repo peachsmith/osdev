@@ -1,0 +1,25 @@
+Cross Compiler:
+
+install the following dependencies:
+build-essential
+bison
+flex
+libgmp3-dev
+libmpc-dev
+libmpfr-dev
+texinfo
+
+
+build binutils, then gcc itself
+
+set some environment variables
+build output directory
+export PREFIX="$HOME/Documents/osdev/compiler/build"
+
+target
+export TARGET=i686-elf
+
+add the cross compiler binary to current path
+export PATH="$PREFIX/bin:$PATH"
+
+
