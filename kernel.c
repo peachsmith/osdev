@@ -11,6 +11,10 @@
 #if !defined(__i386__)
 #error "An ix86-elf compiler is required"
 #endif
+
+
+#include "gdt.h"
+
  
 /* Hardware text mode color constants. */
 enum vga_color {
@@ -106,13 +110,14 @@ void terminal_writestring(const char* data)
  
 void kernel_main(void) 
 {
-	uint64_t my64;
+	// Initialize the GDT.
+	init_gdt();
+
 	
-	my64 = 6000000000;
-	
-	/* Initialize terminal interface */
+	// Initialize VGA terminal
 	terminal_initialize();
  
-	/* Newline support is left as an exercise. */
+	// Example VGA output
 	terminal_writestring("Hello, kernel World!\n");
 }
+
