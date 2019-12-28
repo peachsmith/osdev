@@ -7,9 +7,9 @@ CC=$(TARGET)-gcc
 
 C_FLAGS=-c -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
-LNK_FLAGS= -ffreestanding -O2 -nostdlib
+LNK_FLAGS=-ffreestanding -O2 -nostdlib
 
-OBJ=kernel.o
+OBJ=boot.o kernel.o
 BIN=myos.bin
 ISO=myos.iso
 
@@ -23,7 +23,8 @@ build:
 	cp $(BIN) isodir/boot/
 	grub-mkrescue -o $(ISO) isodir
 
-
+run:
+	qemu-system-i386 -cdrom $(ISO)
 
 clean:
 	rm *.o
