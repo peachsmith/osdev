@@ -106,6 +106,10 @@ void terminal_writestring(const char* data)
  
 void kernel_main(void) 
 {
+	uint64_t my64;
+	
+	my64 = 6000000000;
+	
 	/* Initialize terminal interface */
 	terminal_initialize();
  
