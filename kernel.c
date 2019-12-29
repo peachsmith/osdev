@@ -120,11 +120,8 @@ static inline void inline_outb(uint16_t port, uint8_t val)
  
 void kernel_main(void) 
 {
-	// Initialize the GDT.
-	init_gdt();
-
 	// enable cursor
-	my_outb(0x3D4, 0x0A);
+	inline_outb(0x3D4, 0x0A);
 	inline_outb(0x3D5, 0x00);
 	inline_outb(0x3D4, 0x0B);
 	inline_outb(0x3D5, 0x0F);
