@@ -39,29 +39,6 @@ enum vga_color {
 void vga_set_cursor(uint8_t x, uint8_t y);
 
 /**
- * Builds an 8-bit byte containing the foreground and background colors of
- * a single character.
- * TODO: this function can probably be a macro
- *
- * Params:
- *   enum vga_color - the foreground color
- *   enum vga_color - the background color
- *
- * Returns:
- *   uint8_t - an 8-bit unsigned integer
- */
-uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg);
-
-/**
- * Builds a single VGA entry containing the character data and color.
- *
- * Params:
- *   unsigned char - the chatacter to write
- *   uint8_t - the color information
- */
-uint16_t vga_entry(unsigned char uc, uint8_t color);
-
-/**
  * Initializes the VGA context.
  */
 void vga_init();
