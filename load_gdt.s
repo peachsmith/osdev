@@ -16,4 +16,3 @@ load_gdt:
 
 .long_jump:
 	ret
-
