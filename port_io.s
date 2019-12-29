@@ -1,8 +1,13 @@
 .section .text
 
-.global my_outb
+.global k_outb
 
-my_outb:
+# Writes a byte to an output port.
+#
+# Params:
+#   word - the port number to which the byte will be written
+#   byte - an 8-bit number to be written to the port
+k_outb:
 	
 	pushl %ebp
 	movl %esp, %ebp
