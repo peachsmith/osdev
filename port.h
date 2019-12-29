@@ -9,7 +9,7 @@
  *   uint16_t port - the I/O port to which a byte will be written
  *   uint8_t value - an 8-bit byte containing a value to be written
  */
-extern void my_outb(uint16_t port, uint8_t value);
+//extern void my_outb(uint16_t port, uint8_t value);
 
 #endif
 

@@ -13,7 +13,6 @@
 #endif
 
 
-#include "gdt.h"
 #include "port.h"
 
  
@@ -109,7 +108,7 @@ void terminal_writestring(const char* data)
 	terminal_write(data, strlen(data));
 }
  
-static inline void inline_outb(uint16_t port, uint8_t val)
+static void inline_outb(uint16_t port, uint8_t val)
 {
     asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
     /* There's an outb %al, $imm8  encoding, for compile-time constant port numbers that fit in 8b.  (N constraint).
@@ -117,23 +116,25 @@ static inline void inline_outb(uint16_t port, uint8_t val)
      * The  outb  %al, %dx  encoding is the only option for all other cases.
      * %1 expands to %dx because  port  is a uint16_t.  %w1 could be used if we had the port number a wider C type */
 }
- 
+
+extern void my_outb(uint16_t port, uint8_t value);
+
 void kernel_main(void) 
 {
 	// enable cursor
-	inline_outb(0x3D4, 0x0A);
-	inline_outb(0x3D5, 0x00);
-	inline_outb(0x3D4, 0x0B);
-	inline_outb(0x3D5, 0x0F);
+	my_outb(0x3D4, 0x0A);
+	my_outb(0x3D5, 0x00);
+	my_outb(0x3D4, 0x0B);
+	my_outb(0x3D5, 0x0F);
 
 	// update cursor position
-	uint8_t y = 2;
-	uint8_t x = 4;
+	uint8_t y = 0;
+	uint8_t x = 1;
 	uint16_t pos = y * VGA_WIDTH + x; 
-	inline_outb(0x3D4, 0x0F);
-	inline_outb(0x3D5, (uint8_t)(pos & 0xFF));
-	inline_outb(0x3D4, 0x0E);
-	inline_outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+	my_outb(0x3D4, 0x0F);
+	my_outb(0x3D5, (uint8_t)(pos & 0xFF));
+	my_outb(0x3D4, 0x0E);
+	my_outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 	
 	// Initialize VGA terminal
 	terminal_initialize();
