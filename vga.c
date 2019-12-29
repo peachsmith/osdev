@@ -72,10 +72,10 @@ void vga_putchar(char c)
 	if (c == 0x0A)
 	{
 		if (vga_row < VGA_HEIGHT - 1)
+		{
 			vga_row++;
-
-		if (vga_col < VGA_WIDTH - 1)
-			vga_col++;
+			vga_col = 0;
+		}
 
 		return;
 	}

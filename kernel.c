@@ -14,7 +14,7 @@
 
 void kernel_main(void)
 {
-	vga_set_cursor(0, 0);
+	vga_set_cursor(0, 2);
 
 	// Initialize VGA terminal
 	vga_init();
