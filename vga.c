@@ -97,7 +97,7 @@ void vga_write(const char* data, size_t size)
 		vga_putchar(data[i]);
 }
 
-void terminal_writestring(const char* data)
+void vga_writes(const char* data)
 {
 	vga_write(data, strlen(data));
 }
