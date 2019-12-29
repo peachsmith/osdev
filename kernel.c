@@ -14,6 +14,7 @@
 
 
 #include "gdt.h"
+#include "port.h"
 
  
 /* Hardware text mode color constants. */
@@ -108,11 +109,34 @@ void terminal_writestring(const char* data)
 	terminal_write(data, strlen(data));
 }
  
+static inline void inline_outb(uint16_t port, uint8_t val)
+{
+    asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
+    /* There's an outb %al, $imm8  encoding, for compile-time constant port numbers that fit in 8b.  (N constraint).
+     * Wider immediate constants would be truncated at assemble-time (e.g. "i" constraint).
+     * The  outb  %al, %dx  encoding is the only option for all other cases.
+     * %1 expands to %dx because  port  is a uint16_t.  %w1 could be used if we had the port number a wider C type */
+}
+ 
 void kernel_main(void) 
 {
 	// Initialize the GDT.
 	init_gdt();
 
+	// enable cursor
+	inline_outb(0x3D4, 0x0A);
+	inline_outb(0x3D5, 0x00);
+	inline_outb(0x3D4, 0x0B);
+	inline_outb(0x3D5, 0x0F);
+
+	// update cursor position
+	uint8_t y = 2;
+	uint8_t x = 4;
+	uint16_t pos = y * VGA_WIDTH + x; 
+	inline_outb(0x3D4, 0x0F);
+	inline_outb(0x3D5, (uint8_t)(pos & 0xFF));
+	inline_outb(0x3D4, 0x0E);
+	inline_outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 	
 	// Initialize VGA terminal
 	terminal_initialize();
