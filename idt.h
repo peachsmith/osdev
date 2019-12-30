@@ -18,7 +18,7 @@ struct idt_handle
 }__attribute__((packed));
 
 extern struct idt_entry idt_entries[256];
-extern idt_handle idt_first;
+extern struct idt_handle idt_first;
 
 extern void init_idt();
 

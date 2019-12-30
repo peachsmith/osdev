@@ -40,6 +40,3 @@ clean:
 	rm $(BIN)
 	rm $(ISO)
 	rm isodir/boot/myos.bin
-
-
-
