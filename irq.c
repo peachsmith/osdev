@@ -1,0 +1,73 @@
+#include "port.h"
+
+void irq0_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq1_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq2_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq3_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq4_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq5_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq6_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq7_handler() {
+	k_outb(0x20, 0x20);
+}
+
+void irq8_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq9_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq10_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq11_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq12_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq13_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq14_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}
+
+void irq15_handler() {
+	k_outb(0xA0, 0x20);
+	k_outb(0x20, 0x20);
+}

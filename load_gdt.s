@@ -12,7 +12,7 @@ load_gdt:
 	mov %eax, %fs
 	mov %eax, %gs
 	mov %eax, %ss
-	jmp $0x8, $.long_jump
+	jmp $0x8, $.long_jump # this might not be necessary. we may be able to do a regular ret
 
 .long_jump:
 	ret

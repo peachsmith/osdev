@@ -1,5 +1,9 @@
 #include "gdt.h"
 
+#define NULL_SEGMENT 0
+#define CODE_SEGMENT 1
+#define DATA_SEGMENT 2
+
 struct gdt_entry gdt_entries[3];
 struct gdt_handle gdt_first;
 

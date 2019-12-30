@@ -14,10 +14,11 @@
 
 void kernel_main(void)
 {
-	vga_set_cursor(0, 2);
-
 	// Initialize VGA terminal
 	vga_init();
+
+	// Set the cursor position to row 0, column 2
+	vga_set_cursor(0, 2);
 
 	// Example VGA output
 	vga_writes("Hello, World!\n");

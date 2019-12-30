@@ -29,11 +29,16 @@ stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
  
-# The linker script specifies _start as the entry point into the kernel.
+
 .section .text
+
+# The linker script specifies _start as the entry point into the kernel.
 .global _start
-.extern init_gdt
 .type _start, @function
+
+.extern init_gdt # implemented in gdt.c
+.extern init_idt # implemented in idt.c
+
 _start:
 
 	# The bootloader has loaded into 32-bit protected mode on x86.
@@ -46,6 +51,9 @@ _start:
  
 	# Loan the GDT
 	call init_gdt
+
+	# Load the IDT
+	call init_idt
 	
 	# TODO: enable paging
  

@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-#define NULL_SEGMENT 0
-#define CODE_SEGMENT 1
-#define DATA_SEGMENT 2
-
 struct gdt_entry
 {
 	uint16_t segment_limit;
