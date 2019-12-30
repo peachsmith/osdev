@@ -24,22 +24,22 @@ extern void irq15();
 
 void init_idt()
 {
-	void(*irq0_address)() = (void(*)())irq0;
-	void(*irq1_address)() = (void(*)())irq1;
-	void(*irq2_address)() = (void(*)())irq2;
-	void(*irq3_address)() = (void(*)())irq3;
-	void(*irq4_address)() = (void(*)())irq4;
-	void(*irq5_address)() = (void(*)())irq5;
-	void(*irq6_address)() = (void(*)())irq6;
-	void(*irq7_address)() = (void(*)())irq7;
-	void(*irq8_address)() = (void(*)())irq8;
-	void(*irq9_address)() = (void(*)())irq9;
-	void(*irq10_address)() = (void(*)())irq10;
-	void(*irq11_address)() = (void(*)())irq11;
-	void(*irq12_address)() = (void(*)())irq12;
-	void(*irq13_address)() = (void(*)())irq13;
-	void(*irq14_address)() = (void(*)())irq14;
-	void(*irq15_address)() = (void(*)())irq15;
+	uintptr_t irq0_address = (uintptr_t)irq0;
+	uintptr_t irq1_address = (uintptr_t)irq1;
+	uintptr_t irq2_address = (uintptr_t)irq2;
+	uintptr_t irq3_address = (uintptr_t)irq3;
+	uintptr_t irq4_address = (uintptr_t)irq4;
+	uintptr_t irq5_address = (uintptr_t)irq5;
+	uintptr_t irq6_address = (uintptr_t)irq6;
+	uintptr_t irq7_address = (uintptr_t)irq7;
+	uintptr_t irq8_address = (uintptr_t)irq8;
+	uintptr_t irq9_address = (uintptr_t)irq9;
+	uintptr_t irq10_address = (uintptr_t)irq10;
+	uintptr_t irq11_address = (uintptr_t)irq11;
+	uintptr_t irq12_address = (uintptr_t)irq12;
+	uintptr_t irq13_address = (uintptr_t)irq13;
+	uintptr_t irq14_address = (uintptr_t)irq14;
+	uintptr_t irq15_address = (uintptr_t)irq15;
 	struct idt_entry* idt_address;
 	struct idt_entry* idt_ptr[2];
 
@@ -155,7 +155,7 @@ void init_idt()
 	idt_entries[47].offset_high = (irq15_address & 0xFFFF0000) >> 16;
 
 	idt_first.limit_size = sizeof(idt_entries) * 256 - 1;
-	idt_first.base_addr = (struct idt_entry*)&idt_entries;
+	idt_first.base_addr = (struct idt_entry*) & idt_entries;
 
-	load_idt((struct gdt_entry*)&idt_first);
+	load_idt((struct gdt_entry*) & idt_first);
 }
