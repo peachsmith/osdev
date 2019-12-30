@@ -16,4 +16,15 @@
  */
 extern void k_outb(uint16_t port, uint8_t value);
 
+/**
+ * Reads an 8-bit value from an I/O port.
+ *
+ * Params:
+ *   uint16_t port - the port number
+ *
+ * Returns:
+ *   uint8_t the value read from the port
+ */
+extern uint8_t k_inb(uint16_t port);
+
 #endif

@@ -1,6 +1,7 @@
 .section .text
 
 .global k_outb
+.global k_inb
 
 # Writes a byte to an output port.
 #
@@ -17,6 +18,19 @@ k_outb:
 	movb 12(%ebp), %al # second argument (a byte containing the value)
 
 	out %al, %dx       # write the byte in al to the port in dx
+	
+	leave
+	ret
+	
+k_inb:
+
+	pushl %ebp
+	movl %esp, %ebp
+	subl $8, %esp
+	
+	movw 8(%ebp), %dx  # first argument (a word containing the port number)
+
+	in %dx, %al       # write the byte in al to the port in dx
 	
 	leave
 	ret

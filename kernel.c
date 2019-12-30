@@ -10,6 +10,31 @@
 
 #include "port.h"
 #include "vga.h"
+#include "pit.h"
+
+/**
+ * Temporary COM1 initialization code
+ */
+void serial_init()
+{
+	uint16_t port =  0x3f8;
+	k_outb(port + 1, 0x00);    // Disable all interrupts
+	k_outb(port + 3, 0x80);    // Enable DLAB (set baud rate divisor)
+	k_outb(port + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
+	k_outb(port + 1, 0x00);    //                  (hi byte)
+	k_outb(port + 3, 0x03);    // 8 bits, no parity, one stop bit
+	k_outb(port + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
+	k_outb(port + 4, 0x0B);    // IRQs enabled, RTS/DSR set
+}
+
+uint8_t is_tx_empty(uint16_t port) {
+	return k_inb(port + 5) & 0x20;
+}
+ 
+void serial_write(uint16_t port, char a) {
+	while (is_tx_empty(port) == 0);
+	k_outb(port, a);
+}
 
 /**
  * Some temporary PIT initialization code to confirm the functionality
@@ -54,6 +79,26 @@ void kernel_main(void)
 	vga_writes("We're still in VGA text mode with no interesting stuff yet.\n");
 	
 	pit_init(20);
+	
+	k_wait(2);
+	vga_writes("Hello, again!\n");
+	k_wait(10);
+	vga_writes("Hello, again!\n");
+	
+	serial_write(0x3f8, 'H');
+	serial_write(0x3f8, 'e');
+	serial_write(0x3f8, 'l');
+	serial_write(0x3f8, 'l');
+	serial_write(0x3f8, 'o');
+	serial_write(0x3f8, ',');
+	serial_write(0x3f8, ' ');
+	serial_write(0x3f8, 's');
+	serial_write(0x3f8, 'e');
+	serial_write(0x3f8, 'r');
+	serial_write(0x3f8, 'i');
+	serial_write(0x3f8, 'a');
+	serial_write(0x3f8, 'l');
+	serial_write(0x3f8, '!');
 	
 	uint8_t done = 0;
 	while(!done)
