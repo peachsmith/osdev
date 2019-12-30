@@ -33,7 +33,7 @@ build:
 	grub-mkrescue -o $(ISO) isodir
 
 run:
-	qemu-system-i386 -cdrom $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -serial stdio
 
 clean:
 	rm *.o
