@@ -1,8 +1,28 @@
 #include <stdint.h>
 
 #include "port.h"
+#include "vga.h"
+
+static uint32_t ticks = 0;
+static uint32_t pit_i = 0;
+char pit_chars[10] = {
+	'a', 'b', 'c', 'd', 'e',
+	'f', 'g', 'h', 'i', 'j'
+};
 
 void irq0_handler() {
+
+	// Temporary PIT handling to test interrupts
+	if (ticks < 200)
+	{
+		ticks++;
+		if (ticks % 20 == 0 && pit_i < 10)
+		{
+			vga_putchar(pit_chars[pit_i++]);
+			vga_putchar('\n');
+		}
+	}
+	
 	k_outb(0x20, 0x20);
 }
 

@@ -36,10 +36,10 @@
  */
 #define vga_make_entry(ch, co) ((uint16_t)ch | (uint16_t)co << 8)
 
-size_t vga_row;
-size_t vga_col;
-uint8_t vga_color;
-uint16_t* vga_buffer;
+static size_t vga_row;
+static size_t vga_col;
+static uint8_t vga_color;
+static uint16_t* vga_buffer;
 
 void vga_set_cursor(uint8_t x, uint8_t y)
 {

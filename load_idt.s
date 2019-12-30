@@ -39,6 +39,7 @@
 
 irq0:
   pusha
+  cld
   call irq0_handler
   popa
   iret
