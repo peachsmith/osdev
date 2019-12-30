@@ -40,8 +40,6 @@ void init_idt()
 	uintptr_t irq13_address = (uintptr_t)irq13;
 	uintptr_t irq14_address = (uintptr_t)irq14;
 	uintptr_t irq15_address = (uintptr_t)irq15;
-	struct idt_entry* idt_address;
-	struct idt_entry* idt_ptr[2];
 
 	// Remap the PIC
 	k_outb(0x20, 0x11);

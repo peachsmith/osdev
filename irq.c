@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "port.h"
 
 void irq0_handler() {
