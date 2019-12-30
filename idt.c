@@ -152,7 +152,7 @@ void init_idt()
 	idt_entries[47].type = 0x8E; /* INTERRUPT_GATE */
 	idt_entries[47].offset_high = (irq15_address & 0xFFFF0000) >> 16;
 
-	idt_first.limit_size = sizeof(idt_entries) * 256 - 1;
+	idt_first.limit_size = sizeof(idt_entries) - 1;
 	idt_first.base_addr = (struct idt_entry*) & idt_entries;
 
 	load_idt((struct gdt_entry*) & idt_first);
