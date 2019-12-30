@@ -24,6 +24,9 @@ extern void irq15();
 
 void init_idt()
 {
+	// TODO: verify uintptr_t size, since that
+	// may affect the IDT entries.
+
 	uintptr_t irq0_address = (uintptr_t)irq0;
 	uintptr_t irq1_address = (uintptr_t)irq1;
 	uintptr_t irq2_address = (uintptr_t)irq2;
