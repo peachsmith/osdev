@@ -18,7 +18,13 @@
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
- 
+
+
+.section .data
+greeting:
+	.asciz "stack created\n"
+
+
 # Create the stack.
 # Create a symbol to represent the bottom of the stack, skip 16384 bytes,
 # then create a symbol to represent the top of the stack.
@@ -36,6 +42,8 @@ stack_top:
 .global _start
 .type _start, @function
 
+.extern com1_init # implemented in serial.c
+.extern com1_writes
 .extern init_gdt # implemented in gdt.c
 .extern init_idt # implemented in idt.c
 
@@ -48,6 +56,15 @@ _start:
  
 	# Set up the stack by moving the top of the stack into the stack pointer.
 	mov $stack_top, %esp
+	
+	# initialize COM1
+	call com1_init
+	
+	# write the greeting to COM1
+	movl $greeting, %eax
+	pushl %eax
+	call com1_writes
+	popl %eax
  
 	# Loan the GDT
 	call init_gdt

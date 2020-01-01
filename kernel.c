@@ -60,7 +60,6 @@ void kernel_main(void)
 	k_wait(2);
 	vga_writes("Hello, again!\n");
 
-	com1_init();
 	com1_writes("Hello, serial world!\n");
 	com1_writes("This is another line.\n");
 
