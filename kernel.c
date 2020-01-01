@@ -61,9 +61,12 @@ void kernel_main(void)
 	vga_writes("Hello, again!\n");
 
 	com1_writes("Hello, serial world!\n");
-	com1_writes("This is another line.\n");
 	
-//	k_int_test();
+	com1_writes("We will now attempt to divide by zero.\n");
+	
+	k_int_test();
+	
+	com1_writes("That was an attempt to divide by zero.\n");
 
 	uint8_t done = 0;
 	while (!done)
