@@ -9,7 +9,7 @@ C_FLAGS=-c -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
 LNK_FLAGS=-ffreestanding -O2 -nostdlib
 
-OBJ=boot.o port.o load_gdt.o load_idt.o gdt.o idt.o irq.o string.o vga.o kernel.o
+OBJ=boot.o port.o serial.o load_gdt.o load_idt.o gdt.o idt.o irq.o string.o vga.o kernel.o
 BIN=myos.bin
 ISO=myos.iso
 
@@ -21,6 +21,7 @@ build:
 	$(AS) port.s -o port.o
 	$(AS) load_gdt.s -o load_gdt.o
 	$(AS) load_idt.s -o load_idt.o
+	$(CC) $(C_FLAGS) serial.c -o serial.o
 	$(CC) $(C_FLAGS) gdt.c -o gdt.o
 	$(CC) $(C_FLAGS) idt.c -o idt.o
 	$(CC) $(C_FLAGS) irq.c -o irq.o
