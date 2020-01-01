@@ -34,5 +34,5 @@ void com1_writes(char* str)
 	size_t len = strlen(str);
 
 	for (size_t i = 0; i < len; i++)
-		com1_write(COM1, str[i]);
+		com1_write(str[i]);
 }
