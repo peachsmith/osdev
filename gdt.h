@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+/**
+ * A single GDT entry.
+ */
 struct gdt_entry
 {
 	uint16_t segment_limit;
@@ -13,15 +16,31 @@ struct gdt_entry
 	uint8_t base_high;
 }__attribute__((packed));
 
+/**
+ * A structure representing the address of a GDT.
+ */
 struct gdt_handle
 {
 	uint16_t limit_size;
 	struct gdt_entry* base_addr;
 }__attribute__((packed));
 
-extern struct gdt_entry gdt_entries[3];
-extern struct gdt_handle gdt_first;
+typedef struct gdt_entry gdt_entry;
+typedef struct gdt_handle gdt_handle;
 
+/**
+ * The GDT.
+ */
+extern gdt_entry gdt[3];
+
+/**
+ * The address of the first GDT entry.
+ */
+extern gdt_handle gdt_first;
+
+/**
+ * Builds the GDT.
+ */
 extern void init_gdt();
 
 #endif
