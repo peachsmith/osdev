@@ -115,195 +115,195 @@
 # ISRs for exceptions and reserved interrupts
 #-----------------------------------------------------------------------------
 isr_0:
-	pusha
+	pushal
 	call isr_0_handler
-	popa
+	popal
 	iret
 
 isr_1:
-	pusha
+	pushal
 	call isr_1_handler
-	popa
+	popal
 	iret
 
 isr_2:
-	pusha
+	pushal
 	call isr_2_handler
-	popa
+	popal
 	iret
 
 isr_3:
-	pusha
+	pushal
 	call isr_3_handler
-	popa
+	popal
 	iret
 
 isr_4:
-	pusha
+	pushal
 	call isr_4_handler
-	popa
+	popal
 	iret
 
 isr_5:
-	pusha
+	pushal
 	call isr_5_handler
-	popa
+	popal
 	iret
 
 isr_6:
-	pusha
+	pushal
 	call isr_6_handler
-	popa
+	popal
 	iret
 
 isr_7:
-	pusha
+	pushal
 	call isr_7_handler
-	popa
+	popal
 	iret
 
 isr_8:
-	pusha
+	pushal
 	call isr_8_handler
-	popa
+	popal
 	iret
 
 isr_9:
-	pusha
+	pushal
 	call isr_9_handler
-	popa
+	popal
 	iret
 
 isr_10:
-	pusha
+	pushal
 	call isr_10_handler
-	popa
+	popal
 	iret
 
 isr_11:
-	pusha
+	pushal
 	call isr_11_handler
-	popa
+	popal
 	iret
 
 isr_12:
-	pusha
+	pushal
 	call isr_12_handler
-	popa
+	popal
 	iret
 
 isr_13:
-	pusha
+	pushal
 	call isr_13_handler
-	popa
+	popal
 	iret
 
 isr_14:
-	pusha
+	pushal
 	call isr_14_handler
-	popa
+	popal
 	iret
 
 isr_15:
-	pusha
+	pushal
 	call isr_15_handler
-	popa
+	popal
 	iret
 
 isr_16:
-	pusha
+	pushal
 	call isr_16_handler
-	popa
+	popal
 	iret
 
 isr_17:
-	pusha
+	pushal
 	call isr_17_handler
-	popa
+	popal
 	iret
 
 isr_18:
-	pusha
+	pushal
 	call isr_18_handler
-	popa
+	popal
 	iret
 
 isr_19:
-	pusha
+	pushal
 	call isr_19_handler
-	popa
+	popal
 	iret
 
 isr_20:
-	pusha
+	pushal
 	call isr_20_handler
-	popa
+	popal
 	iret
 
 isr_21:
-	pusha
+	pushal
 	call isr_21_handler
-	popa
+	popal
 	iret
 
 isr_22:
-	pusha
+	pushal
 	call isr_22_handler
-	popa
+	popal
 	iret
 
 isr_23:
-	pusha
+	pushal
 	call isr_23_handler
-	popa
+	popal
 	iret
 
 isr_24:
-	pusha
+	pushal
 	call isr_24_handler
-	popa
+	popal
 	iret
 
 isr_25:
-	pusha
+	pushal
 	call isr_25_handler
-	popa
+	popal
 	iret
 
 isr_26:
-	pusha
+	pushal
 	call isr_26_handler
-	popa
+	popal
 	iret
 
 isr_27:
-	pusha
+	pushal
 	call isr_27_handler
-	popa
+	popal
 	iret
 
 isr_28:
-	pusha
+	pushal
 	call isr_28_handler
-	popa
+	popal
 	iret
 
 isr_29:
-	pusha
+	pushal
 	call isr_29_handler
-	popa
+	popal
 	iret
 
 isr_30:
-	pusha
+	pushal
 	call isr_30_handler
-	popa
+	popal
 	iret
 
 isr_31:
-	pusha
+	pushal
 	call isr_31_handler
-	popa
+	popal
 	iret
 
 

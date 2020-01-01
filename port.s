@@ -2,6 +2,7 @@
 
 .global k_outb
 .global k_inb
+.global k_int_test
 
 # Writes a byte to an output port.
 #
@@ -31,6 +32,19 @@ k_inb:
 	movw 8(%ebp), %dx  # first argument (a word containing the port number)
 
 	in %dx, %al       # write the byte in al to the port in dx
+	
+	leave
+	ret
+
+k_int_test:
+
+	pushl %ebp
+	movl %esp, %ebp
+	subl $8, %esp
+	
+	movb $0, %al
+	movb $0, %cl
+	div %cl
 	
 	leave
 	ret

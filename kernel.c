@@ -62,6 +62,8 @@ void kernel_main(void)
 
 	com1_writes("Hello, serial world!\n");
 	com1_writes("This is another line.\n");
+	
+//	k_int_test();
 
 	uint8_t done = 0;
 	while (!done)
