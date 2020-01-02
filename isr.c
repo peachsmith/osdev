@@ -22,7 +22,7 @@ void isr_0_handler()
 
 void isr_1_handler()
 {
-	com1_writes("FAULT: Debug Exception\n");
+	com1_writes("FAULT/TRAP: Debug Exception\n");
 }
 
 void isr_2_handler()
