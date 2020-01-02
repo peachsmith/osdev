@@ -15,40 +15,165 @@ void k_wait(uint16_t s)
 	while (pit_s < end);
 }
 
-void isr_0_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {
+void isr_0_handler()
+{
 	com1_writes("FAULT: Divide Error\n");
 }
-void isr_1_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_2_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_3_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_4_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_5_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_6_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_7_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_8_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_9_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_10_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_11_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_12_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_13_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_14_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_15_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_16_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_17_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_18_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_19_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_20_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_21_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_22_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_23_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_24_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_25_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_26_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_27_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_28_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_29_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_30_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
-void isr_31_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
+
+void isr_1_handler()
+{
+	com1_writes("FAULT: Debug Exception\n");
+}
+
+void isr_2_handler()
+{
+	com1_writes("INTERRUPT: NMI Interrupt\n");
+}
+
+void isr_3_handler()
+{
+	// TRAP: Breakpoint
+}
+
+void isr_4_handler()
+{
+	com1_writes("TRAP: Overflow\n");
+}
+
+void isr_5_handler()
+{
+	com1_writes("FAULT: BOUND Range Exceeded\n");
+}
+
+void isr_6_handler()
+{
+	com1_writes("FAULT: Invalid Opcode\n");
+}
+
+void isr_7_handler()
+{
+	com1_writes("FAULT: Device Not Available\n");
+}
+
+void isr_8_handler()
+{
+	com1_writes("ABORT: Double Fault\n");
+}
+
+void isr_9_handler()
+{
+	// Reserved
+	com1_writes("FAULT: Coprocessor Segment Overrun\n");
+}
+
+void isr_10_handler()
+{
+	com1_writes("FAULT: Invalid TSS\n");
+}
+void isr_11_handler()
+{
+	com1_writes("FAULT: Segment Not Present\n");
+}
+
+void isr_12_handler()
+{
+	com1_writes("FAULT: Stack Segment Fault\n");
+}
+
+void isr_13_handler()
+{
+	com1_writes("FAULT: General Protection\n");
+}
+
+void isr_14_handler()
+{
+	com1_writes("FAULT: Page Fault\n");
+}
+
+void isr_15_handler()
+{
+	// Reserved
+}
+
+void isr_16_handler()
+{
+	com1_writes("FAULT: x87 FPU Floating Point Error\n");
+}
+
+void isr_17_handler()
+{
+	com1_writes("FAULT: Alignment Check\n");
+}
+
+void isr_18_handler()
+{
+	com1_writes("ABORT: Machine Check\n");
+}
+
+void isr_19_handler()
+{
+	com1_writes("FAULT: SIMD Floating Point Exception\n");
+}
+
+void isr_20_handler()
+{
+	com1_writes("FAULT: Virtualization Exception\n");
+}
+
+void isr_21_handler()
+{
+	// Reserved
+}
+
+void isr_22_handler()
+{
+	// Reserved
+}
+
+void isr_23_handler()
+{
+	// Reserved
+}
+
+void isr_24_handler()
+{
+	// Reserved
+}
+
+void isr_25_handler()
+{
+	// Reserved
+}
+
+void isr_26_handler()
+{
+	// Reserved
+}
+
+void isr_27_handler()
+{
+	// Reserved
+}
+
+void isr_28_handler()
+{
+	// Reserved
+}
+
+void isr_29_handler()
+{
+	// Reserved
+}
+
+void isr_30_handler()
+{
+	// Reserved
+}
+
+void isr_31_handler()
+{
+	// Reserved
+}
 
 
 
