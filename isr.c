@@ -16,7 +16,7 @@ void k_wait(uint16_t s)
 }
 
 void isr_0_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {
-	com1_writes("a divide by zero exception has occurred.\n");
+	com1_writes("FAULT: Divide Error\n");
 }
 void isr_1_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
 void isr_2_handler(uint32_t eax, uint32_t ecx, uint32_t edx, uint32_t ebx, uint32_t esp, uint32_t esi, uint32_t edi, uint32_t err) {}
