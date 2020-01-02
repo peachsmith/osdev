@@ -53,25 +53,14 @@ void kernel_main(void)
 
 	// Example VGA output
 	vga_writes("Hello, World!\n");
-	vga_writes("We're still in VGA text mode with no interesting stuff yet.\n");
 
 	pit_init(20);
-
-	k_wait(2);
-	vga_writes("Hello, again!\n");
-
-	com1_writes("Hello, serial world!\n");
-	
-	com1_writes("Performing interrupt test...\n");
-	
-	k_int_test();
-	
-	com1_writes("Completed interrupt test.\n");
-	com1_writes("If we made it this far, the interrupt being tested wasn't a fatal error.\n");
 
 	uint8_t done = 0;
 	while (!done)
 	{
 		// Do things
+		k_wait(2);
+		com1_writes("This is the main loop.\n");
 	}
 }

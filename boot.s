@@ -42,10 +42,10 @@ stack_top:
 .global _start
 .type _start, @function
 
-.extern com1_init # implemented in serial.c
-.extern com1_writes
-.extern init_gdt # implemented in gdt.c
-.extern init_idt # implemented in idt.c
+.extern com1_init   # implemented in serial.c
+.extern com1_writes # implemented in serial.c
+.extern init_gdt    # implemented in gdt.c
+.extern init_idt    # implemented in idt.c
 .extern init_paging # implemented in paging.c
 
 _start:
@@ -73,7 +73,7 @@ _start:
 	# Load the IDT
 	call init_idt
 	
-	# TODO: enable paging
+	# Enable paging
 	call init_paging
  
 	# Enter the kernel
