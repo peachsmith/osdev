@@ -115,9 +115,9 @@
 # ISRs for exceptions and reserved interrupts
 #-----------------------------------------------------------------------------
 isr_0:
-	#pushal
+	pushal
 	call isr_0_handler
-	#popal
+	popal
 	iret
 
 isr_1:

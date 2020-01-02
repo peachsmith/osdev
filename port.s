@@ -42,9 +42,10 @@ k_int_test:
 	movl %esp, %ebp
 	subl $8, %esp
 	
-	movb $0, %al
-	movb $0, %cl
-	div %cl
+	#movb $0, %al
+	#movb $0, %cl
+	#div %cl
+	int $0x01
 	
 	leave
 	ret

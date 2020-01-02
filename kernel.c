@@ -62,11 +62,12 @@ void kernel_main(void)
 
 	com1_writes("Hello, serial world!\n");
 	
-	com1_writes("We will now attempt to divide by zero.\n");
+	com1_writes("Performing interrupt test...\n");
 	
 	k_int_test();
 	
-	com1_writes("That was an attempt to divide by zero.\n");
+	com1_writes("Completed interrupt test.\n");
+	com1_writes("If we made it this far, the interrupt being tested wasn't a fatal error.\n");
 
 	uint8_t done = 0;
 	while (!done)
