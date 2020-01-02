@@ -46,6 +46,7 @@ stack_top:
 .extern com1_writes
 .extern init_gdt # implemented in gdt.c
 .extern init_idt # implemented in idt.c
+.extern init_paging # implemented in paging.c
 
 _start:
 
@@ -73,6 +74,7 @@ _start:
 	call init_idt
 	
 	# TODO: enable paging
+	call init_paging
  
 	# Enter the kernel
 	call kernel_main
