@@ -313,99 +313,99 @@ isr_31:
 #-----------------------------------------------------------------------------
 
 irq_0:
-	pusha
+	pushal
 	call irq_0_handler
-	popa
+	popal
 	iret
  
 irq_1:
-	pusha
+	pushal
 	call irq_1_handler
-	popa
+	popal
 	iret
  
 irq_2:
-	pusha
+	pushal
 	call irq_2_handler
-	popa
+	popal
 	iret
  
 irq_3:
-	pusha
+	pushal
 	call irq_3_handler
-	popa
+	popal
 	iret
  
 irq_4:
-	pusha
+	pushal
 	call irq_4_handler
-	popa
+	popal
 	iret
  
 irq_5:
-	pusha
+	pushal
 	call irq_5_handler
-	popa
+	popal
 	iret
  
 irq_6:
-	pusha
+	pushal
 	call irq_6_handler
-	popa
+	popal
 	iret
  
 irq_7:
-	pusha
+	pushal
 	call irq_7_handler
-	popa
+	popal
 	iret
  
 irq_8:
-	pusha
+	pushal
 	call irq_8_handler
-	popa
+	popal
 	iret
  
 irq_9:
-	pusha
+	pushal
 	call irq_9_handler
-	popa
+	popal
 	iret
  
 irq_10:
-	pusha
+	pushal
 	call irq_10_handler
-	popa
+	popal
 	iret
  
 irq_11:
-	pusha
+	pushal
 	call irq_11_handler
-	popa
+	popal
 	iret
  
 irq_12:
-	pusha
+	pushal
 	call irq_12_handler
-	popa
+	popal
 	iret
  
 irq_13:
-	pusha
+	pushal
 	call irq_13_handler
-	popa
+	popal
 	iret
  
 irq_14:
-	pusha
+	pushal
 	call irq_14_handler
-	popa
+	popal
 	iret
  
 irq_15:
-	pusha
+	pushal
 	call irq_15_handler
-	popa
+	popal
 	iret
 
 load_idt:
