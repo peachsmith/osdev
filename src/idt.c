@@ -1,5 +1,5 @@
-#include "idt.h"
-#include "port.h"
+#include "kernel/idt.h"
+#include "kernel/port.h"
 
 /**
  * Interrupt Service Routines

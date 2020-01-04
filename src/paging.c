@@ -1,5 +1,5 @@
-#include "paging.h"
-#include "serial.h"
+#include "kernel/paging.h"
+#include "kernel/serial.h"
 
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 

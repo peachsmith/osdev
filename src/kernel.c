@@ -8,10 +8,10 @@
 #endif
 
 
-#include "port.h"
-#include "vga.h"
-#include "pit.h"
-#include "serial.h"
+#include "kernel/port.h"
+#include "kernel/vga.h"
+#include "kernel/pit.h"
+#include "kernel/serial.h"
 
 /**
  * Some temporary PIT initialization code to confirm the functionality

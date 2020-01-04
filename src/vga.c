@@ -1,6 +1,7 @@
-#include "vga.h"
-#include "string.h"
-#include "port.h"
+#include "kernel/vga.h"
+#include "kernel/port.h"
+
+#include "libc/string.h"
 
 // VGA terminal dimensions
 #define VGA_WIDTH 80

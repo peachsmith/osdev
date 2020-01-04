@@ -4,6 +4,8 @@
 # the build tools are assumed to be the GNU gcc toolchain
 AS=$(TARGET)-as
 CC=$(TARGET)-gcc
+SRC=./src
+INC=-I./include
 
 C_FLAGS=-c -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
@@ -17,19 +19,19 @@ all: build
 
 
 build:
-	$(AS) boot.s -o boot.o
-	$(AS) port.s -o port.o
-	$(AS) enable_paging.s -o enable_paging.o
-	$(AS) load_gdt.s -o load_gdt.o
-	$(AS) load_idt.s -o load_idt.o
-	$(CC) $(C_FLAGS) serial.c -o serial.o
-	$(CC) $(C_FLAGS) gdt.c -o gdt.o
-	$(CC) $(C_FLAGS) idt.c -o idt.o
-	$(CC) $(C_FLAGS) isr.c -o isr.o
-	$(CC) $(C_FLAGS) paging.c -o paging.o
-	$(CC) $(C_FLAGS) string.c -o string.o
-	$(CC) $(C_FLAGS) vga.c -o vga.o
-	$(CC) $(C_FLAGS) kernel.c -o kernel.o
+	$(AS) $(SRC)/boot.s -o boot.o
+	$(AS) $(SRC)/port.s -o port.o
+	$(AS) $(SRC)/enable_paging.s -o enable_paging.o
+	$(AS) $(SRC)/load_gdt.s -o load_gdt.o
+	$(AS) $(SRC)/load_idt.s -o load_idt.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/serial.c -o serial.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/gdt.c -o gdt.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/idt.c -o idt.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/isr.c -o isr.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/paging.c -o paging.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/string.c -o string.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/vga.c -o vga.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/kernel.c -o kernel.o
 	
 	$(CC) -T linker.ld -o $(BIN) $(LNK_FLAGS) $(OBJ) -lgcc
 	cp $(BIN) isodir/boot/

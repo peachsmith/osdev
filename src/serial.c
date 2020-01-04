@@ -1,6 +1,7 @@
-#include "serial.h"
-#include "port.h"
-#include "string.h"
+#include "kernel/serial.h"
+#include "kernel/port.h"
+
+#include "libc/string.h"
 
 #define COM1 0x3F8
 

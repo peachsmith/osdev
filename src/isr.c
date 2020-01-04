@@ -1,9 +1,9 @@
 #include <stdint.h>
 
-#include "port.h"
-#include "vga.h"
-#include "pit.h"
-#include "serial.h"
+#include "kernel/port.h"
+#include "kernel/vga.h"
+#include "kernel/pit.h"
+#include "kernel/serial.h"
 
 static volatile uint32_t ticks = 0;
 static volatile uint32_t pit_s = 0;

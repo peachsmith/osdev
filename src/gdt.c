@@ -1,4 +1,4 @@
-#include "gdt.h"
+#include "kernel/gdt.h"
 
 // Segments
 #define NULL_SEGMENT 0
