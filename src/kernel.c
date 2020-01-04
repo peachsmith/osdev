@@ -30,8 +30,8 @@ void kernel_main(void)
 	uint8_t done = 0;
 	while (!done)
 	{
-		// Do things
-		k_pit_waits(2);
+		// k_pit_waits test
+		k_pit_waits(1);
 		com1_writes("This is the main loop.\n");
 	}
 }

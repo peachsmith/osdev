@@ -24,4 +24,14 @@ void k_pit_init();
  */
 void k_pit_waits(uint32_t s);
 
+/**
+ * Waits for an approximate number of milliseconds.
+ * This function uses the PIT, so the actual amount of time waited is a rough
+ * approximation.
+ *
+ * Params:
+ *   uint32_t s - the number of milliseconds to wait
+ */
+void k_pit_waitm(uint32_t m);
+
 #endif

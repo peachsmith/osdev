@@ -10,6 +10,15 @@ static volatile uint32_t ticks = 0;
 void k_pit_waits(uint32_t s)
 {
 	ticks = s * 1000;
+	
+	while(ticks);
+}
+
+void k_pit_waitm(uint32_t m)
+{
+	ticks = m;
+	
+	while(ticks);
 }
 
 void isr_0_handler()

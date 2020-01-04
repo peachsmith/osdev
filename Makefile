@@ -11,7 +11,7 @@ C_FLAGS=-c -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
 LNK_FLAGS=-ffreestanding -O2 -nostdlib
 
-OBJ=boot.o port.o enable_paging.o serial.o load_gdt.o load_idt.o gdt.o idt.o isr.o paging.o string.o vga.o kernel.o
+OBJ=boot.o port.o enable_paging.o pit.o serial.o load_gdt.o load_idt.o gdt.o idt.o isr.o paging.o string.o vga.o kernel.o
 BIN=myos.bin
 ISO=myos.iso
 
@@ -24,6 +24,7 @@ build:
 	$(AS) $(SRC)/enable_paging.s -o enable_paging.o
 	$(AS) $(SRC)/load_gdt.s -o load_gdt.o
 	$(AS) $(SRC)/load_idt.s -o load_idt.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/pit.c -o pit.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/serial.c -o serial.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/gdt.c -o gdt.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/idt.c -o idt.o

@@ -1,4 +1,5 @@
 #include "kernel/pit.h"
+#include "kernel/port.h"
 
 #define CHANNEL_0 0x40
 #define COMMAND   0x43
