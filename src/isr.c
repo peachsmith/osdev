@@ -6,13 +6,10 @@
 #include "kernel/serial.h"
 
 static volatile uint32_t ticks = 0;
-static volatile uint32_t pit_s = 0;
 
-void k_wait(uint16_t s)
+void k_pit_waits(uint32_t s)
 {
-	uint32_t end = pit_s + s;
-
-	while (pit_s < end);
+	ticks = s * 1000;
 }
 
 void isr_0_handler()
@@ -177,81 +174,93 @@ void isr_31_handler()
 
 
 
-void irq_0_handler() {
-
-	ticks++;
-	if (ticks % 20 == 0)
-	{
-		pit_s++;
-	}
+void irq_0_handler()
+{
+	if (ticks > 0)
+		ticks--;
 
 	k_outb(0x20, 0x20);
 }
 
-void irq_1_handler() {
+void irq_1_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_2_handler() {
+void irq_2_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_3_handler() {
+void irq_3_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_4_handler() {
+void irq_4_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_5_handler() {
+void irq_5_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_6_handler() {
+void irq_6_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_7_handler() {
+void irq_7_handler()
+{
 	k_outb(0x20, 0x20);
 }
 
-void irq_8_handler() {
+void irq_8_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_9_handler() {
+void irq_9_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_10_handler() {
+void irq_10_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_11_handler() {
+void irq_11_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_12_handler() {
+void irq_12_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_13_handler() {
+void irq_13_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_14_handler() {
+void irq_14_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }
 
-void irq_15_handler() {
+void irq_15_handler()
+{
 	k_outb(0xA0, 0x20);
 	k_outb(0x20, 0x20);
 }

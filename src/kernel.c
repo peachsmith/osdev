@@ -13,35 +13,6 @@
 #include "kernel/pit.h"
 #include "kernel/serial.h"
 
-/**
- * Some temporary PIT initialization code to confirm the functionality
- * of interrupt handling.
- */
-void pit_init(uint16_t f)
-{
-	// Due to historical reasons, a frequency of roughly 1.193186 MHz
-	// is used by the PIT.
-	uint32_t history; // historical frequency
-	uint32_t divisor; // divisor used to get the desired frequency
-	uint8_t pit_lo;   // low byte of divisor
-	uint8_t pit_hi;   // high byte of divisor
-
-	// Calculate the divisor.
-	// Note that the divisor should be able to git within a word.
-	history = 1193180;
-	divisor = history / f;
-
-	// Split the divisor into high and low bytes.
-	pit_lo = (uint8_t)(divisor & 0xFF);
-	pit_hi = (uint8_t)((divisor >> 8) & 0xFF);
-
-	// Send the command byte.
-	k_outb(0x43, 0x36);
-
-	// Send the divisor to channel 0.
-	k_outb(0x40, pit_lo);
-	k_outb(0x40, pit_hi);
-}
 
 void kernel_main(void)
 {
@@ -54,13 +25,13 @@ void kernel_main(void)
 	// Example VGA output
 	vga_writes("Hello, World!\n");
 
-	pit_init(20);
+	k_pit_init();
 
 	uint8_t done = 0;
 	while (!done)
 	{
 		// Do things
-		k_wait(2);
+		k_pit_waits(2);
 		com1_writes("This is the main loop.\n");
 	}
 }
