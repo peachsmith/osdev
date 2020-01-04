@@ -409,7 +409,13 @@ irq_15:
 	iret
 
 load_idt:
-	mov 4(%esp), %eax
+	pushl %ebp
+	movl %esp, %ebp
+	subl $0x08, %esp
+	
+	mov 8(%ebp), %eax
 	lidt (%eax)
 	sti
+	
+	leave
 	ret
