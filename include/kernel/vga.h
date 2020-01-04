@@ -1,5 +1,5 @@
-#ifndef VGA_H
-#define VGA_H
+#ifndef JEP_K_VGA_H
+#define JEP_K_VGA_H
 
 /**
  * VGA text mode interface.

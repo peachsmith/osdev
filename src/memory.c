@@ -1,10 +1,19 @@
-#include "kernel/paging.h"
+#include "kernel/memory.h"
 #include "kernel/serial.h"
 
+/**
+ * The page directory
+ */
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 
+/**
+ * The first page table
+ */
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
 
+/**
+ * 
+ */
 extern void load_page_directory(uint32_t*);
 extern void enable_paging();
 

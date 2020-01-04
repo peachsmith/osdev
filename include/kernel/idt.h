@@ -1,5 +1,5 @@
-#ifndef IDT_H
-#define IDT_H
+#ifndef JEP_K_IDT_H
+#define JEP_K_IDT_H
 
 #include <stdint.h>
 
