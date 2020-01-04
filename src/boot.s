@@ -21,8 +21,20 @@
 
 
 .section .data
-greeting:
+stack_msg:
 	.asciz "stack created\n"
+
+gdt_msg:
+	.asciz "GDT loaded\n"
+
+idt_msg:
+	.asciz "IDT loaded\n"
+	
+paging_msg:
+	.asciz "paging enabled\n"
+	
+kernel_msg:
+	.asciz "entering kernel\n"
 
 
 # Create the stack.
@@ -61,21 +73,44 @@ _start:
 	# initialize COM1
 	call com1_init
 	
-	# write the greeting to COM1
-	movl $greeting, %eax
+	movl $stack_msg, %eax
 	pushl %eax
 	call com1_writes
 	popl %eax
  
+ 
 	# Loan the GDT
 	call init_gdt
+	
+	movl $gdt_msg, %eax
+	pushl %eax
+	call com1_writes
+	popl %eax
+	
 
 	# Load the IDT
 	call init_idt
 	
+	movl $idt_msg, %eax
+	pushl %eax
+	call com1_writes
+	popl %eax
+	
+	
 	# Enable paging
 	call init_paging
  
+ 	movl $paging_msg, %eax
+	pushl %eax
+	call com1_writes
+	popl %eax
+ 
+ 
+ 	movl $kernel_msg, %eax
+	pushl %eax
+	call com1_writes
+	popl %eax
+	
 	# Enter the kernel
 	call kernel_main
  
