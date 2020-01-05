@@ -11,8 +11,6 @@ uint32_t page_directory[1024] __attribute__((aligned(4096)));
  */
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
 
-uint32_t last_page = 255;
-uint32_t last_res = 0; // don't worry about frees for now
 
 /**
  * 
@@ -52,6 +50,10 @@ void init_paging()
 	enable_paging();
 }
 
+uint32_t dir_i = 0;   // directory index [0, 1023]
+uint32_t tab_i = 255; // table index     [0, 1023]
+uint32_t offset = 0;  // frame offset    [0, 4095]
+
 /**
  * The goal of this function is to construct a valid pointer to virtual memory.
  * There is currently only one page table with all of its 1024 entries
@@ -61,17 +63,21 @@ void init_paging()
  */
 void* build_pointer(size_t n)
 {	
-	// last_page is a number ranging from 255 to 1023
-	// that represents the index of the first page table.
-	uint32_t p = last_page << 12;
+	uint32_t v_addr; // a virtual address
+
+	// shift the 10 bit directory index to the left by 22	
+	v_addr = dir_i << 22;
 	
-	// For now, only allow up to 4095 bytes to be allocated.
-	// We're only concerned with constructing a valid pointer.
-	if (last_res + n < 0xFFF)
+	// OR the address with the 10-bit table index shifted to the left by 12
+	v_addr |= (tab_i << 12);
+	
+	// for now, we're only allowing allocation within one frame
+	// and not worrying about freeing memory
+	if (offset < 0xFFF)
 	{
-		p |= last_res;
-		last_res += n;
-		return (void*)p;
+		v_addr |= offset;
+		offset += n;
+		return (void*)v_addr;
 	}
 	
 	return NULL;
