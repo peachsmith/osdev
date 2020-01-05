@@ -51,7 +51,7 @@ void init_paging()
 }
 
 uint32_t dir_i = 0;   // directory index [0, 1023]
-uint32_t tab_i = 255; // table index     [0, 1023]
+uint32_t tab_i = 1; // table index     [0, 1023]
 uint32_t offset = 0;  // frame offset    [0, 4095]
 
 /**
