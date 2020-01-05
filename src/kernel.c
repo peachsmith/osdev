@@ -12,20 +12,32 @@
 #include "kernel/vga.h"
 #include "kernel/pit.h"
 #include "kernel/serial.h"
+#include "kernel/memory.h"
 
 
 void kernel_main(void)
 {
-	// Initialize VGA terminal
 	vga_init();
-
-	// Set the cursor position to row 0, column 2
-	vga_set_cursor(13, 0);
-
-	// Example VGA output
+	k_pit_init();
+	
 	vga_writes("Hello, World!\n");
 
-	k_pit_init();
+	
+	// Attempt to allocate memory
+	char* my_char = (char*)build_pointer(3);
+	
+	my_char[0] = 'A';
+	my_char[1] = 'B';
+	my_char[2] = 'C';
+	
+	vga_putchar(my_char[0]);
+	vga_putchar('\n');
+	
+	vga_putchar(my_char[1]);
+	vga_putchar('\n');
+	
+	vga_putchar(my_char[2]);
+	vga_putchar('\n');
 
 	uint8_t done = 0;
 	while (!done)

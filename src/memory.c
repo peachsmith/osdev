@@ -11,6 +11,9 @@ uint32_t page_directory[1024] __attribute__((aligned(4096)));
  */
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
 
+uint32_t last_page = 255;
+uint32_t last_res = 0; // don't worry about frees for now
+
 /**
  * 
  */
@@ -47,4 +50,29 @@ void init_paging()
 
 	// Enable paging.
 	enable_paging();
+}
+
+/**
+ * The goal of this function is to construct a valid pointer to virtual memory.
+ * There is currently only one page table with all of its 1024 entries
+ * populated with identity mapping.
+ * So the physical addresses 0x00 - 0x3FFFFF are mapped to the virtual
+ * addresses 0x00 - 0x3FFFFF.
+ */
+void* build_pointer(size_t n)
+{	
+	// last_page is a number ranging from 255 to 1023
+	// that represents the index of the first page table.
+	uint32_t p = last_page << 12;
+	
+	// For now, only allow up to 4095 bytes to be allocated.
+	// We're only concerned with constructing a valid pointer.
+	if (last_res + n < 0xFFF)
+	{
+		p |= last_res;
+		last_res += n;
+		return (void*)p;
+	}
+	
+	return NULL;
 }
