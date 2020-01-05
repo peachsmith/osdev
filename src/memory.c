@@ -73,7 +73,7 @@ void* build_pointer(size_t n)
 	
 	// for now, we're only allowing allocation within one frame
 	// and not worrying about freeing memory
-	if (offset < 0xFFF)
+	if (offset + n < 0xFFF)
 	{
 		v_addr |= offset;
 		offset += n;
