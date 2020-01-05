@@ -13,14 +13,24 @@
 #include "kernel/pit.h"
 #include "kernel/serial.h"
 #include "kernel/memory.h"
+#include "kernel/multiboot.h"
 
 
-void kernel_main(void)
+void kernel_main(uint32_t mb_magic, multiboot_info_t* mbi)
 {
 	vga_init();
 	k_pit_init();
 	
 	vga_writes("Hello, World!\n");
+	
+	if (mb_magic == 0x2BADB002)
+	{
+		vga_writes("Obtained the multiboot magic number.\n");
+	}
+	else
+	{
+		vga_writes("Failed to get the multiboot magic number.\n");
+	}
 
 	
 	// Attempt to allocate memory

@@ -70,6 +70,12 @@ _start:
 	# Set up the stack by moving the top of the stack into the stack pointer.
 	mov $stack_top, %esp
 	
+	# eax contains the multiboot magic number and ebx contains
+	# a pointer to the multiboot info structure, so we push
+	# them onto the stack before calling initialization code
+	pushl %ebx
+	pushl %eax
+	
 	# initialize COM1
 	call com1_init
 	
@@ -110,6 +116,14 @@ _start:
 	pushl %eax
 	call com1_writes
 	popl %eax
+	
+	# retrieve the multiboot data before entering the kernel
+	#movl -0x20(%ebp), %eax
+	#movl -0x18(%ebp), %ebx
+	
+	#pushl %ebx
+	#pushl %eax
+	
 	
 	# Enter the kernel
 	call kernel_main
