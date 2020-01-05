@@ -5,6 +5,13 @@
 #include "kernel/pit.h"
 #include "kernel/serial.h"
 
+/**
+ * A macro to put the computer into an infinite loop.
+ * This is currently only used for development and debugging.
+ * Future implementations may be more elaborate and have
+ */
+#define HANG for(;;)
+
 static volatile uint32_t ticks = 0;
 
 void k_pit_waits(uint32_t s)
@@ -24,6 +31,7 @@ void k_pit_waitm(uint32_t m)
 void isr_0_handler()
 {
 	com1_writes("FAULT: Divide Error\n");
+	HANG;
 }
 
 void isr_1_handler()
@@ -89,11 +97,13 @@ void isr_12_handler()
 void isr_13_handler()
 {
 	com1_writes("FAULT: General Protection\n");
+	HANG;
 }
 
 void isr_14_handler()
 {
 	com1_writes("FAULT: Page Fault\n");
+	HANG;
 }
 
 void isr_15_handler()
