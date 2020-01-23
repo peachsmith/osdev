@@ -18,7 +18,7 @@ idt_handle idt_first;
 /**
  * Executes the lidt instruction to load the IDT.
  */
-extern void load_idt(idt_entry*);
+extern void load_idt(idt_handle*);
 
 // ISRs for exceptions and reserved interrupts
 extern void isr_0();
@@ -152,8 +152,8 @@ void init_idt()
 	set_idt_entry(47, (uintptr_t)irq_15, 0x08, 0x8E);
 
 	idt_first.limit_size = sizeof(idt) - 1;
-	idt_first.base_addr = (idt_entry*)(&idt);
+	idt_first.base_addr = idt;
 
 	// Load the IDT.
-	load_idt((idt_entry*)&idt_first);
+	load_idt(&idt_first);
 }

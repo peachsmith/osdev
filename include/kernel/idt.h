@@ -27,16 +27,6 @@ typedef struct idt_entry idt_entry;
 typedef struct idt_handle idt_handle;
 
 /**
- * The IDT.
- */
-extern idt_entry idt[256];
-
-/**
- * The address of the first IDT entry.
- */
-extern idt_handle idt_first;
-
-/**
  * Populates the IDT.
  */
 extern void init_idt();

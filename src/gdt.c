@@ -18,7 +18,7 @@ gdt_handle gdt_first;
 /**
  * Executes the lgdt instruction to load the GDT.
  */
-extern void load_gdt(gdt_entry*);
+extern void load_gdt(gdt_handle*);
 
 static void set_gdt_entry(uint8_t segment,
 	uint16_t limit,
@@ -49,9 +49,8 @@ void init_gdt()
 
 	// Build the handle to the first GDT entry.
 	gdt_first.limit_size = sizeof(gdt) - 1;
-	gdt_first.base_addr = (struct gdt_entry*)(&gdt);
+	gdt_first.base_addr = gdt;
 
 	// Load the GDT.
-	load_gdt((gdt_entry*)(&gdt_first));
+	load_gdt(&gdt_first);
 }
-

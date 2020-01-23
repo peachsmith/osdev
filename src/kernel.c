@@ -15,45 +15,39 @@
 #include "kernel/memory.h"
 #include "kernel/multiboot.h"
 
+#include "libc/stdio.h"
+
+extern uint64_t extract_double_sysv32(double d);
 
 void kernel_main(uint32_t mb_magic, multiboot_info_t* mbi)
 {
 	vga_init();
 	k_pit_init();
 	
-	vga_writes("Hello, World!\n");
+	printf("Multiboot magic number: %X\n", mb_magic);
+	printf("mmap length: %d\n", mbi->mmap_length);
+	printf("mmap address: %X\n", mbi->mmap_addr);
 	
-	if (mb_magic == 0x2BADB002)
-	{
-		vga_writes("Obtained the multiboot magic number.\n");
-	}
-	else
-	{
-		vga_writes("Failed to get the multiboot magic number.\n");
-	}
+	// 1MiB = 0x100000
 
+	multiboot_memory_map_t* mmm;
+
+	for (mmm = (multiboot_memory_map_t*)mbi->mmap_addr;
+		(uint32_t)mmm < (mbi->mmap_addr + mbi->mmap_length);
+		mmm = (multiboot_memory_map_t*)((uint32_t)mmm + mmm->size + sizeof(mmm->size)))
+	{
+		printf("addr: %016llX, len: %016llX, type: %4d\n",
+			(uint64_t)((mmm->addr_hi << 32) | mmm->addr_lo),
+			(uint64_t)((mmm->len_hi << 32) | mmm->len_lo),
+			mmm->type);
+	}
 	
-	// Attempt to allocate memory
-	char* my_char = (char*)build_pointer(3);
-	
-	my_char[0] = 'A';
-	my_char[1] = 'B';
-	my_char[2] = 'C';
-	
-	vga_putchar(my_char[0]);
-	vga_putchar('\n');
-	
-	vga_putchar(my_char[1]);
-	vga_putchar('\n');
-	
-	vga_putchar(my_char[2]);
-	vga_putchar('\n');
 
 	uint8_t done = 0;
 	while (!done)
 	{
 		// k_pit_waits test
-		k_pit_waits(1);
-		com1_writes("This is the main loop.\n");
+		//k_pit_waits(1);
+		//com1_writes("This is the main loop.\n");
 	}
 }

@@ -29,19 +29,8 @@ typedef struct gdt_entry gdt_entry;
 typedef struct gdt_handle gdt_handle;
 
 /**
- * The GDT.
- */
-extern gdt_entry gdt[3];
-
-/**
- * The address of the first GDT entry.
- */
-extern gdt_handle gdt_first;
-
-/**
  * Builds the GDT.
  */
 extern void init_gdt();
 
 #endif
-

@@ -3,4 +3,5 @@ isodir/
 *.bin
 *.o
 *.iso
+.vscode/
 
