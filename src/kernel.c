@@ -17,7 +17,6 @@
 
 #include "libc/stdio.h"
 
-extern uint64_t extract_double_sysv32(double d);
 
 void kernel_main(uint32_t mb_magic, multiboot_info_t* mbi)
 {
