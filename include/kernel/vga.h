@@ -29,6 +29,18 @@ enum vga_color {
 	VGA_COLOR_WHITE = 15,
 };
 
+
+
+
+/**
+ * Initializes the VGA context.
+ */
+void k_vga_init();
+
+
+
+
+
 /**
  * Sets the cursor position for the VGA context.
  *
@@ -37,11 +49,6 @@ enum vga_color {
  *   uint8_t - the row position
  */
 void vga_set_cursor(uint8_t x, uint8_t y);
-
-/**
- * Initializes the VGA context.
- */
-void vga_init();
 
 /**
  * Sets the color data for the current VGA context.

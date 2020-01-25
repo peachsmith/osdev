@@ -91,18 +91,10 @@
 
 #ifndef ASM_FILE
 
-#include <stdint.h>
-
-struct my64 {
-  uint32_t a;
-  uint32_t b;
-}__attribute__((packed));
-
 typedef unsigned char           multiboot_uint8_t;
 typedef unsigned short          multiboot_uint16_t;
 typedef unsigned int            multiboot_uint32_t;
-//typedef unsigned long long      multiboot_uint64_t;
-typedef uint64_t multiboot_uint64_t;
+typedef unsigned long long      multiboot_uint64_t;
 
 struct multiboot_header
 {
@@ -238,12 +230,19 @@ struct multiboot_color
 struct multiboot_mmap_entry
 {
   multiboot_uint32_t size;
-  //multiboot_uint64_t addr;
-  //multiboot_uint64_t len;
+
+// Due to the way gcc handles structures with 64-bit members, we split the
+// 64-bit values into two 32-bit values each while in 32-bit mode.
+#ifdef __JEP64__
+  multiboot_uint64_t addr;
+  multiboot_uint64_t len;
+#else
   multiboot_uint32_t addr_lo;
   multiboot_uint32_t addr_hi;
   multiboot_uint32_t len_lo;
   multiboot_uint32_t len_hi;
+#endif
+
 #define MULTIBOOT_MEMORY_AVAILABLE              1
 #define MULTIBOOT_MEMORY_RESERVED               2
 #define MULTIBOOT_MEMORY_ACPI_RECLAIMABLE       3

@@ -5,13 +5,23 @@
 #include "libc/string.h"
 
 #include "kernel/vga.h"
+#include "kernel/serial.h"
 
+// character buffers used for standard I/O operations
+// In the future, these may be allocated differently, and each process
+// may have its own set of I/O buffers.
+char k_ibuf[BUFSIZ];
+char k_obuf[BUFSIZ];
+char k_ebuf[BUFSIZ];
+char k_dbuf[BUFSIZ];
 
-
-
-FILE k_stdout = { 1 };
-FILE k_stdin = { 2 };
-FILE k_stderr = { 3 };
+// The IO streams
+// These represent the current implementation of stdin, stdout, and stderr.
+// We also include the non-standard stddbg for development purposes.
+FILE k_stdin  = { 1, k_ibuf, 0, BUFSIZ, 0, 0 };
+FILE k_stdout = { 2, k_obuf, 0, BUFSIZ, 0, 0 };
+FILE k_stderr = { 3, k_ebuf, 0, BUFSIZ, 0, 0 };
+FILE k_stddbg = { 4, k_dbuf, 0, BUFSIZ, 0, 0 };
 
 
 /**
@@ -22,9 +32,16 @@ FILE k_stderr = { 3 };
  * Returns:
  *   FILE* - stdout.
  */
-FILE* get_stdout()
+FILE* k_get_iobuf(int id)
 {
-	return &k_stdout;
+	switch(id)
+	{
+		case 1: return &k_stdin;
+		case 2: return &k_stdout;
+		case 3: return &k_stderr;
+		case 4: return &k_stddbg;
+		default: return NULL;
+	}
 }
 
 // number buffer size limit
@@ -267,7 +284,7 @@ extern uint64_t extract_double_sysv32(double d);
  * Returns:
  *   ieee_754_float - the individual binary components of the number
  */
-static ieee_754_float extract_float(float f);
+//static ieee_754_float extract_float(float f);
 
 /**
  * Extracts the raw binary components of a 64-bit IEEE 754 double-precision
@@ -295,7 +312,7 @@ static ieee_754_double extract_double(double d);
  *   const char* - a pointer to a character array of '1' and '0'
  *   uint8_t* - a pointer to the output buffer
  */
-static size_t fbin_to_fdec_frac(const char* raw, uint8_t* frac);
+//static size_t fbin_to_fdec_frac(const char* raw, uint8_t* frac);
 
 /**
  * Converts a binary whole number to decimal.
@@ -314,7 +331,7 @@ static size_t fbin_to_fdec_frac(const char* raw, uint8_t* frac);
  * Returns:
  *   size_t - the number of values written to the output buffer
  */
-static size_t fbin_to_fdec_whole(const char* raw, uint8_t* whole);
+//static size_t fbin_to_fdec_whole(const char* raw, uint8_t* whole);
 
 /**
  * Converts a single-precision floating point number into two unsigned integer
@@ -328,7 +345,7 @@ static size_t fbin_to_fdec_whole(const char* raw, uint8_t* whole);
  *   uint8_t* - an array to contain the digits to the right of the radix point
  *   size_t* - a pointer to the number of digits to the right of the radix point
  */
-static void expand_float(float f, uint8_t* whole, size_t* w_res, uint8_t* frac, size_t* f_res);
+//static void expand_float(float f, uint8_t* whole, size_t* w_res, uint8_t* frac, size_t* f_res);
 
 /**
  * Converts a binary fraction value to decimal.
@@ -680,26 +697,26 @@ static ftag parse_format(const char* start, char** end)
 
 
 
-static ieee_754_float extract_float(float f)
-{
-	ieee_754_float comp;
-	uint32_t raw;
+// static ieee_754_float extract_float(float f)
+// {
+// 	ieee_754_float comp;
+// 	uint32_t raw;
 
-	raw = extract_float_sysv32(f);
+// 	raw = extract_float_sysv32(f);
 
-	comp.raw = raw;
-	comp.sign = FLOAT_SGN_BIT(raw);
-	comp.exp = FLOAT_EXP_BIT(raw);
-	comp.mant = FLOAT_MNT_BIT(raw);
+// 	comp.raw = raw;
+// 	comp.sign = FLOAT_SGN_BIT(raw);
+// 	comp.exp = FLOAT_EXP_BIT(raw);
+// 	comp.mant = FLOAT_MNT_BIT(raw);
 
-	// Remove the implicit 1 bit for denormalized numbers.
-	if (((raw & 0x7F800000) >> 23) == 0)
-	{
-		comp.mant ^= 0x00800000;
-	}
+// 	// Remove the implicit 1 bit for denormalized numbers.
+// 	if (((raw & 0x7F800000) >> 23) == 0)
+// 	{
+// 		comp.mant ^= 0x00800000;
+// 	}
 
-	return comp;
-}
+// 	return comp;
+// }
 
 static ieee_754_double extract_double(double d)
 {
@@ -722,243 +739,243 @@ static ieee_754_double extract_double(double d)
 	return comp;
 }
 
-static size_t fbin_to_fdec_frac(const char* raw, uint8_t* frac)
-{
-	size_t i, j, k, c;              // indices
-	uint8_t conv[2][FLOAT_BIN_DIG]; // binary to decimal conversion array
-	uint8_t dec[FLOAT_BIN_DIG];     // decimal number
-	uint8_t next;                   // next digit in conversion array
-	uint8_t half;                   // half of the next conversion digit
-	size_t n;                       // decimal digit counter
+// static size_t fbin_to_fdec_frac(const char* raw, uint8_t* frac)
+// {
+// 	size_t i, j, k, c;              // indices
+// 	uint8_t conv[2][FLOAT_BIN_DIG]; // binary to decimal conversion array
+// 	uint8_t dec[FLOAT_BIN_DIG];     // decimal number
+// 	uint8_t next;                   // next digit in conversion array
+// 	uint8_t half;                   // half of the next conversion digit
+// 	size_t n;                       // decimal digit counter
 
-	// Prepopulate the fraction evaluator arrays with 0
-	for (i = 0; i < FLOAT_BIN_DIG; i++)
-	{
-		dec[i] = 0;
-		conv[0][i] = 0;
-		conv[1][i] = 0;
-	}
+// 	// Prepopulate the fraction evaluator arrays with 0
+// 	for (i = 0; i < FLOAT_BIN_DIG; i++)
+// 	{
+// 		dec[i] = 0;
+// 		conv[0][i] = 0;
+// 		conv[1][i] = 0;
+// 	}
 
-	// Give the conversion array a starting value
-	conv[0][0] = 5;
+// 	// Give the conversion array a starting value
+// 	conv[0][0] = 5;
 
-	i = j = k = 0;
+// 	i = j = k = 0;
 
-	while (*raw != '\0' && i < FLOAT_EXP_N)
-	{
-		// If the current binary digit is 1, add the
-		// conversion result to the current decimal value.
-		if (*raw == '1')
-		{
-			for (j = 0; j < FLOAT_BIN_DIG; j++)
-			{
-				dec[j] += conv[k][j];
+// 	while (*raw != '\0' && i < FLOAT_EXP_N)
+// 	{
+// 		// If the current binary digit is 1, add the
+// 		// conversion result to the current decimal value.
+// 		if (*raw == '1')
+// 		{
+// 			for (j = 0; j < FLOAT_BIN_DIG; j++)
+// 			{
+// 				dec[j] += conv[k][j];
 
-				// Handle carries
-				if (dec[j] >= 10)
-				{
-					for (c = j; c > 0 && dec[c] >= 10; c--)
-					{
-						dec[c - 1]++;
-						dec[c] = dec[c] - 10;
-					}
-				}
-			}
-		}
+// 				// Handle carries
+// 				if (dec[j] >= 10)
+// 				{
+// 					for (c = j; c > 0 && dec[c] >= 10; c--)
+// 					{
+// 						dec[c - 1]++;
+// 						dec[c] = dec[c] - 10;
+// 					}
+// 				}
+// 			}
+// 		}
 
-		// Calculate the decimal equivalent of the next binary digit
-		for (j = 0; j < FLOAT_BIN_DIG && i < FLOAT_EXP_N - 1; j++)
-		{
-			next = conv[k][j];
-			half = next / 2;
+// 		// Calculate the decimal equivalent of the next binary digit
+// 		for (j = 0; j < FLOAT_BIN_DIG && i < FLOAT_EXP_N - 1; j++)
+// 		{
+// 			next = conv[k][j];
+// 			half = next / 2;
 
-			conv[k][j] = 0;
+// 			conv[k][j] = 0;
 
-			if (half > 0 && !(next & 1))
-				conv[k ? 0 : 1][j] += half;
+// 			if (half > 0 && !(next & 1))
+// 				conv[k ? 0 : 1][j] += half;
 
-			else if (j < FLOAT_BIN_DIG - 1)
-			{
-				conv[k ? 0 : 1][j] += half;
-				conv[k ? 0 : 1][j + 1] += next > 0 ? 5 : 0;
-			}
-		}
+// 			else if (j < FLOAT_BIN_DIG - 1)
+// 			{
+// 				conv[k ? 0 : 1][j] += half;
+// 				conv[k ? 0 : 1][j + 1] += next > 0 ? 5 : 0;
+// 			}
+// 		}
 
-		k = k ? 0 : 1;
-		i++;
-		raw++;
-	}
+// 		k = k ? 0 : 1;
+// 		i++;
+// 		raw++;
+// 	}
 
-	// Determine the number of digits in the final decimal number
-	for (n = FLOAT_BIN_DIG - 1; dec[n] == 0 && n > 0; n--);
+// 	// Determine the number of digits in the final decimal number
+// 	for (n = FLOAT_BIN_DIG - 1; dec[n] == 0 && n > 0; n--);
 
-	n++;
+// 	n++;
 
-	for (i = 0; i < n; i++)
-		frac[i] = dec[i];
+// 	for (i = 0; i < n; i++)
+// 		frac[i] = dec[i];
 
-	return n;
-}
+// 	return n;
+// }
 
-static size_t fbin_to_fdec_whole(const char* raw, uint8_t* whole)
-{
-	size_t i, j, k, c;              // indices
-	uint8_t conv[2][FLOAT_BIN_DIG]; // binary to decimal conversion array
-	uint8_t dec[FLOAT_BIN_DIG];     // decimal number
-	uint8_t next;                   // next digit in conversion array
-	uint8_t doub;                   // double of the next conversion digit
-	size_t len;                     // length of the raw string
-	size_t l;                       // length counter
-	size_t n;                       // decimal digit counter
+// static size_t fbin_to_fdec_whole(const char* raw, uint8_t* whole)
+// {
+// 	size_t i, j, k, c;              // indices
+// 	uint8_t conv[2][FLOAT_BIN_DIG]; // binary to decimal conversion array
+// 	uint8_t dec[FLOAT_BIN_DIG];     // decimal number
+// 	uint8_t next;                   // next digit in conversion array
+// 	uint8_t doub;                   // double of the next conversion digit
+// 	size_t len;                     // length of the raw string
+// 	size_t l;                       // length counter
+// 	size_t n;                       // decimal digit counter
 
-	len = strlen(raw);
-	l = len;
+// 	len = strlen(raw);
+// 	l = len;
 
-	// Prepopulate the arrays with 0
-	for (i = 0; i < FLOAT_BIN_DIG; i++)
-	{
-		dec[i] = 0;
-		conv[0][i] = 0;
-		conv[1][i] = 0;
-	}
+// 	// Prepopulate the arrays with 0
+// 	for (i = 0; i < FLOAT_BIN_DIG; i++)
+// 	{
+// 		dec[i] = 0;
+// 		conv[0][i] = 0;
+// 		conv[1][i] = 0;
+// 	}
 
-	// Give the conversion array a starting value
-	conv[0][FLOAT_BIN_DIG - 1] = 1;
+// 	// Give the conversion array a starting value
+// 	conv[0][FLOAT_BIN_DIG - 1] = 1;
 
-	i = j = k = n = 0;
+// 	i = j = k = n = 0;
 
-	while (l > 0 && i < FLOAT_EXP_N)
-	{
-		// If the current binary digit is 1, add the
-		// conversion result to the current decimal value.
-		if (raw[l - 1] == '1')
-		{
-			for (j = FLOAT_BIN_DIG - 1; j > 0; j--)
-			{
-				dec[j] += conv[k][j];
+// 	while (l > 0 && i < FLOAT_EXP_N)
+// 	{
+// 		// If the current binary digit is 1, add the
+// 		// conversion result to the current decimal value.
+// 		if (raw[l - 1] == '1')
+// 		{
+// 			for (j = FLOAT_BIN_DIG - 1; j > 0; j--)
+// 			{
+// 				dec[j] += conv[k][j];
 
-				// Handle carries
-				if (dec[j] >= 10)
-				{
-					for (c = j; c > 0 && dec[c] >= 10; c--)
-					{
-						dec[c - 1]++;
-						dec[c] = dec[c] - 10;
-					}
-				}
-			}
-		}
+// 				// Handle carries
+// 				if (dec[j] >= 10)
+// 				{
+// 					for (c = j; c > 0 && dec[c] >= 10; c--)
+// 					{
+// 						dec[c - 1]++;
+// 						dec[c] = dec[c] - 10;
+// 					}
+// 				}
+// 			}
+// 		}
 
-		// Calculate the decimal equivalent of the next binary digit
-		for (j = FLOAT_BIN_DIG - 1; j > 0 && i < FLOAT_EXP_N - 1; j--)
-		{
-			next = conv[k][j];
-			doub = next * 2;
+// 		// Calculate the decimal equivalent of the next binary digit
+// 		for (j = FLOAT_BIN_DIG - 1; j > 0 && i < FLOAT_EXP_N - 1; j--)
+// 		{
+// 			next = conv[k][j];
+// 			doub = next * 2;
 
-			conv[k][j] = 0;
+// 			conv[k][j] = 0;
 
-			conv[k ? 0 : 1][j] += doub;
+// 			conv[k ? 0 : 1][j] += doub;
 
-			// Handle carries
-			if (conv[k ? 0 : 1][j] >= 10)
-			{
-				for (c = j; c > 0 && conv[k ? 0 : 1][c] >= 10; c--)
-				{
-					conv[k ? 0 : 1][c - 1]++;
-					conv[k ? 0 : 1][c] = conv[k ? 0 : 1][c] - 10;
-				}
-			}
-		}
+// 			// Handle carries
+// 			if (conv[k ? 0 : 1][j] >= 10)
+// 			{
+// 				for (c = j; c > 0 && conv[k ? 0 : 1][c] >= 10; c--)
+// 				{
+// 					conv[k ? 0 : 1][c - 1]++;
+// 					conv[k ? 0 : 1][c] = conv[k ? 0 : 1][c] - 10;
+// 				}
+// 			}
+// 		}
 
-		k = k ? 0 : 1;
-		i++;
-		l--;
-	}
+// 		k = k ? 0 : 1;
+// 		i++;
+// 		l--;
+// 	}
 
-	// Determine the number of digits in the final decimal number
-	for (n = 0; dec[n] == 0 && n < FLOAT_BIN_DIG; n++);
+// 	// Determine the number of digits in the final decimal number
+// 	for (n = 0; dec[n] == 0 && n < FLOAT_BIN_DIG; n++);
 
-	for (i = n; i < FLOAT_BIN_DIG; i++)
-		whole[i - n] = dec[i];
+// 	for (i = n; i < FLOAT_BIN_DIG; i++)
+// 		whole[i - n] = dec[i];
 
-	return FLOAT_BIN_DIG - n;
-}
+// 	return FLOAT_BIN_DIG - n;
+// }
 
-static void expand_float(float f,
-	uint8_t* whole,
-	size_t* w_res,
-	uint8_t* frac,
-	size_t* f_res)
-{
-	ieee_754_float ieeef;
-	char mstr[25];
-	int16_t i, j;
-	uint8_t li;
-	uint8_t ri;
-	uint8_t rad;
-	char left[FLOAT_BIN_DIG];
-	char right[FLOAT_BIN_DIG];
+// static void expand_float(float f,
+// 	uint8_t* whole,
+// 	size_t* w_res,
+// 	uint8_t* frac,
+// 	size_t* f_res)
+// {
+// 	ieee_754_float ieeef;
+// 	char mstr[25];
+// 	int16_t i, j;
+// 	uint8_t li;
+// 	uint8_t ri;
+// 	uint8_t rad;
+// 	char left[FLOAT_BIN_DIG];
+// 	char right[FLOAT_BIN_DIG];
 
 
-	// Extract the binary components of the float.
-	ieeef = extract_float(f);
+// 	// Extract the binary components of the float.
+// 	ieeef = extract_float(f);
 
-	// Prepopulate the character arrays with '\0'.
-	for (i = 0; i < FLOAT_BIN_DIG; i++)
-	{
-		left[i] = '\0';
-		right[i] = '\0';
-		frac[i] = 0;
-		whole[i] = 0;
-	}
+// 	// Prepopulate the character arrays with '\0'.
+// 	for (i = 0; i < FLOAT_BIN_DIG; i++)
+// 	{
+// 		left[i] = '\0';
+// 		right[i] = '\0';
+// 		frac[i] = 0;
+// 		whole[i] = 0;
+// 	}
 
-	// Convert the mantissa to a NUL-terminated string.
-	for (i = 23, j = 0; i >= 0; i--)
-	{
-		mstr[j++] = ((ieeef.mant & (1 << i)) >> i) ? '1' : '0';
-	}
-	mstr[24] = '\0';
+// 	// Convert the mantissa to a NUL-terminated string.
+// 	for (i = 23, j = 0; i >= 0; i--)
+// 	{
+// 		mstr[j++] = ((ieeef.mant & (1 << i)) >> i) ? '1' : '0';
+// 	}
+// 	mstr[24] = '\0';
 
-	rad = li = ri = 0;
+// 	rad = li = ri = 0;
 
-	// If the exponent is negative, add leading zeros '0'
-	// to the right side array.
-	if (ieeef.exp + 1 < 0)
-	{
-		rad = 1;
-		for (i = 0; i < -(ieeef.exp + 1); i++)
-			right[ri++] = '0';
-	}
+// 	// If the exponent is negative, add leading zeros '0'
+// 	// to the right side array.
+// 	if (ieeef.exp + 1 < 0)
+// 	{
+// 		rad = 1;
+// 		for (i = 0; i < -(ieeef.exp + 1); i++)
+// 			right[ri++] = '0';
+// 	}
 
-	for (i = 0; i < 160; i++)
-	{
-		if (i == ieeef.exp + 1)
-			rad = 1;
+// 	for (i = 0; i < 160; i++)
+// 	{
+// 		if (i == ieeef.exp + 1)
+// 			rad = 1;
 
-		if (i < 24)
-		{
-			// Get the characters from the mantissa string.
-			if (rad)
-				right[ri++] = mstr[i];
+// 		if (i < 24)
+// 		{
+// 			// Get the characters from the mantissa string.
+// 			if (rad)
+// 				right[ri++] = mstr[i];
 
-			else
-				left[li++] = mstr[i];
-		}
-		else if (i < ieeef.exp + 1)
-		{
-			// Since we've used all the characters from the
-			// mantissa string, we start outputting zeros '0'.
-			if (rad)
-				right[ri++] = '0';
+// 			else
+// 				left[li++] = mstr[i];
+// 		}
+// 		else if (i < ieeef.exp + 1)
+// 		{
+// 			// Since we've used all the characters from the
+// 			// mantissa string, we start outputting zeros '0'.
+// 			if (rad)
+// 				right[ri++] = '0';
 
-			else
-				left[li++] = '0';
-		}
-	}
+// 			else
+// 				left[li++] = '0';
+// 		}
+// 	}
 
-	*w_res = fbin_to_fdec_whole(left, whole);
-	*f_res = fbin_to_fdec_frac(right, frac);
-}
+// 	*w_res = fbin_to_fdec_whole(left, whole);
+// 	*f_res = fbin_to_fdec_frac(right, frac);
+// }
 
 static size_t dbin_to_ddec_frac(const char* raw, uint8_t* frac)
 {
@@ -1211,7 +1228,7 @@ static int carry(uint8_t* left,
 	{
 		// Move through the right side, incrementing
 		// the digits until they are all less than 10.
-		for (i = ind; i > 0 && right[i] >= 10; i--)
+		for (i = ind; i > 0 && i < r_size && right[i] >= 10; i--)
 		{
 			right[i] = 0;
 			right[i - 1]++;
@@ -1461,8 +1478,6 @@ static size_t int_to_buffer(int n, char* buffer, ftag t)
 	if (n == 0)
 	{
 		buffer[i++] = '0';
-		buffer[i] = '\0';
-		return i;
 	}
 
 	while (u)
@@ -1545,8 +1560,6 @@ static size_t int64_to_buffer(int64_t n, char* buffer, ftag t)
 	if (n == 0)
 	{
 		buffer[i++] = '0';
-		buffer[i] = '\0';
-		return i;
 	}
 
 	while (u)
@@ -1726,9 +1739,9 @@ static size_t doublesn_to_buffer(double d, char* buf, ftag t)
 	size_t count;                  // precision padding
 	int neg;                       // whether the exponent is negative
 	int extra;                     // whether to write an extra digit
-	size_t ls, rs;                 // significant figure counts
+	//size_t ls, rs;                 // significant figure counts
 
-	ls = rs = 0;
+	//ls = rs = 0;
 
 	// Default the precision to 6.
 	if (t.prec == 0 && !(t.flags & FMT_ZPREC))
@@ -1916,7 +1929,7 @@ static size_t parse_udec(const char* str, size_t* res)
  *   size_t - the length of the array
  *   ftag - the format tag
  */
-static void print_num(char* buf, size_t len, ftag t)
+static void print_num(FILE* stream, char* buf, size_t len, ftag t)
 {
 	int neg;     // whether or not the number is negative
 	size_t i;    // index
@@ -1944,14 +1957,14 @@ static void print_num(char* buf, size_t len, ftag t)
 	if (len && buf[0] == '-')
 	{
 		neg = 1;
-		putchar(buf[0]);
+		fputc(buf[0], stream);
 		t.prec++;
 	}
 
 	// Print the positive sign '+'
 	if (len && buf[0] != '-' && (t.flags & FMT_SIGN))
 	{
-		putchar('+');
+		fputc('+', stream);
 		t.prec++;
 		if (t.width)
 			t.width--;
@@ -1960,21 +1973,10 @@ static void print_num(char* buf, size_t len, ftag t)
 	// Print a leading blank space if the space flag is set
 	if (len && buf[0] != '-' && !(t.flags & FMT_SIGN) && (t.flags & FMT_SPACE))
 	{
-		putchar(' ');
+		fputc((t.flags & FMT_ZERO) ? '0' : ' ', stream);
 		t.prec++;
 		if (t.width)
 			t.width--;
-	}
-
-	// Print the leading "0x" or "0X"
-	if (t.flags & FMT_POINT)
-	{
-		if (t.spec == SPEC_X || t.spec == SPEC_x)
-		{
-			putchar(buf[0]);
-			putchar(buf[1]);
-			t.prec += 2;
-		}
 	}
 
 	// Pad with leading spaces if the '-' flag is not present
@@ -1984,12 +1986,23 @@ static void print_num(char* buf, size_t len, ftag t)
 		{
 			d = len > t.prec ? len : t.prec;
 			for (i = 0; i < t.width - d; i++)
-				putchar(' ');
+				fputc(' ', stream);
 		}
 		else if (t.spec == SPEC_p && plen < t.width)
 		{
 			for (i = 0; i < t.width - plen; i++)
-				putchar(' ');
+				fputc(' ', stream);
+		}
+	}
+
+	// Print the leading "0x" or "0X"
+	if (t.flags & FMT_POINT)
+	{
+		if (t.spec == SPEC_X || t.spec == SPEC_x)
+		{
+			fputc(buf[0], stream);
+			fputc(buf[1], stream);
+			t.prec += 2;
 		}
 	}
 
@@ -1997,14 +2010,14 @@ static void print_num(char* buf, size_t len, ftag t)
 	if (t.spec == SPEC_p && len < plen)
 	{
 		for (i = 0; i < plen - len; i++)
-			putchar('0');
+			fputc('0', stream);
 	}
 
 	// Pad with '0' for the precision
 	if (len < t.prec && t.spec != SPEC_p)
 	{
 		for (i = len; i < t.prec; i++)
-			putchar('0');
+			fputc('0', stream);
 	}
 
 	// Determine the starting index for printing.
@@ -2018,7 +2031,7 @@ static void print_num(char* buf, size_t len, ftag t)
 
 	// Print the contents of the buffer.
 	for (; i < len; i++)
-		putchar(buf[i]);
+		fputc(buf[i], stream);
 
 	// Pad with trailing spaces if the '-' flag is present
 	if (len < t.width && (t.flags & FMT_LEFT))
@@ -2027,12 +2040,12 @@ static void print_num(char* buf, size_t len, ftag t)
 		{
 			d = len > t.prec ? len : t.prec;
 			for (i = 0; i < t.width - d; i++)
-				putchar(' ');
+				fputc(' ', stream);
 		}
 		else if (t.spec == SPEC_p && plen < t.width)
 		{
 			for (i = 0; i < t.width - plen; i++)
-				putchar(' ');
+				fputc(' ', stream);
 		}
 	}
 }
@@ -2051,19 +2064,27 @@ int putc(int c, FILE* stream)
 
 int fputc(int c, FILE* stream)
 {
-	//return fputc(c, stream);
-    if (stream->type == 1)
-    {
-        vga_putchar((char)c);
-        return 1;
-    }
-    else
-        return 0;
+	// Here is where we perform a write.
+    switch (stream->type)
+	{
+		// TODO: add logic to determine output context
+		case __FILE_NO_STDOUT:
+		case __FILE_NO_STDERR:
+			vga_putchar((char)(c & 0xFF));
+			return 1;
+
+		case __FILE_NO_STDDBG:
+			com1_write((uint8_t)(c & 0xFF));
+			return 1;
+
+		default:
+			return 0;
+	}
 }
 
 int putchar(int c)
 {
-	return fputc(c, get_stdout());
+	return fputc(c, stdout);
 }
 
 int printf(const char* fmt, ...)
@@ -2129,7 +2150,7 @@ int printf(const char* fmt, ...)
 				    len = int_to_buffer(n, buf, t);
                 }
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			// unsigned decimal integers
@@ -2146,7 +2167,7 @@ int printf(const char* fmt, ...)
 				    len = int_to_buffer(u, buf, t);
                 }
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			// unsigned hexadecimal integers
@@ -2163,7 +2184,7 @@ int printf(const char* fmt, ...)
 				    len = int_to_buffer(u, buf, t);
                 }
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			// signed octal integers
@@ -2172,7 +2193,7 @@ int printf(const char* fmt, ...)
 				if (t.len & LEN_ll)
                 {
                     u64 = va_arg(argp, int64_t);
-                    len = int64_to_buffer(u, buf, t);
+                    len = int64_to_buffer(u64, buf, t);
                 }
                 else
                 {
@@ -2180,7 +2201,7 @@ int printf(const char* fmt, ...)
 				    len = int_to_buffer(u, buf, t);
                 }
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			// pointers
@@ -2189,7 +2210,7 @@ int printf(const char* fmt, ...)
 				p = va_arg(argp, uintptr_t);
 				len = uptr_to_buffer(p, buf, 1);
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			else if (t.spec == SPEC_f)
@@ -2197,7 +2218,7 @@ int printf(const char* fmt, ...)
 				d = va_arg(argp, double);
 				len = double_to_buffer(d, buf, t);
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 
 			else if (t.spec == SPEC_E || t.spec == SPEC_e)
@@ -2205,7 +2226,7 @@ int printf(const char* fmt, ...)
 				d = va_arg(argp, double);
 				len = doublesn_to_buffer(d, buf, t);
 
-				print_num(buf, len, t);
+				print_num(stdout, buf, len, t);
 			}
 			else if (t.spec == SPEC_G || t.spec == SPEC_g)
 			{
@@ -2224,6 +2245,174 @@ int printf(const char* fmt, ...)
 		else
 		{
 			putchar(*fmt);
+		}
+
+		fmt++;
+	}
+
+	va_end(argp);
+
+	return 1;
+}
+
+int fprintf(FILE* stream, const char* fmt, ...)
+{
+	va_list argp;         // argument pointer
+	size_t i, j;          // index
+	char* end;            // updated character pointer
+	char buf[BUF_LIMIT];  // string conversion buffer
+	size_t len;           // string length
+	int err;              // error flag
+
+	// Values to be printed
+	int n;          // integer
+    int n64;        // 64-bit integer
+	unsigned int u; // unsigned integer
+    uint64_t u64;   // unsigned 64-bit integer
+	uintptr_t p;    // unsigned pointer
+	double d;       // double
+
+	va_start(argp, fmt);
+
+	i = j = 0;
+	err = 0;
+	while (*fmt != '\0' && !err)
+	{
+		if (*fmt == '%')
+		{
+			fmt++;
+			ftag t = parse_format(fmt, &end);
+			fmt = end;
+
+			if (t.flags & FMT_WIDTH)
+				t.width = va_arg(argp, size_t);
+
+			if (t.flags & FMT_PREC)
+				t.prec = va_arg(argp, size_t);
+
+			if (t.spec == SPEC_c)
+			{
+				char c = va_arg(argp, int);
+				fputc(c, stream);
+			}
+			else if (t.spec == SPEC_s)
+			{
+				char* s = va_arg(argp, char*);
+				size_t len = strlen(s);
+
+				for (i = 0; i < len; i++)
+					fputc(s[i], stream);
+			}
+
+			// signed decimal integers
+			else if (t.spec == SPEC_d || t.spec == SPEC_i)
+			{
+				if (t.len & LEN_ll)
+                {
+                    n64 = va_arg(argp, int64_t);
+                    len = int64_to_buffer(n64, buf, t);
+                }
+                else
+                {
+                    n = va_arg(argp, int);
+				    len = int_to_buffer(n, buf, t);
+                }
+
+				print_num(stream, buf, len, t);
+			}
+
+			// unsigned decimal integers
+			else if (t.spec == SPEC_u)
+			{
+                if (t.len & LEN_ll)
+                {
+                    u64 = va_arg(argp, uint64_t);
+                    len = int64_to_buffer(u64, buf, t);
+                }
+                else
+                {
+                    u = va_arg(argp, unsigned int);
+				    len = int_to_buffer(u, buf, t);
+                }
+
+				print_num(stream, buf, len, t);
+			}
+
+			// unsigned hexadecimal integers
+			else if (t.spec == SPEC_X || t.spec == SPEC_x)
+			{
+				if (t.len & LEN_ll)
+                {
+                    u64 = va_arg(argp, int64_t);
+                    len = int64_to_buffer(u64, buf, t);
+                }
+                else
+                {
+                    u = va_arg(argp, int);
+				    len = int_to_buffer(u, buf, t);
+                }
+
+				print_num(stream, buf, len, t);
+			}
+
+			// signed octal integers
+			else if (t.spec == SPEC_o)
+			{
+				if (t.len & LEN_ll)
+                {
+                    u64 = va_arg(argp, int64_t);
+                    len = int64_to_buffer(u64, buf, t);
+                }
+                else
+                {
+                    u = va_arg(argp, int);
+				    len = int_to_buffer(u, buf, t);
+                }
+
+				print_num(stream, buf, len, t);
+			}
+
+			// pointers
+			else if (t.spec == SPEC_p)
+			{
+				p = va_arg(argp, uintptr_t);
+				len = uptr_to_buffer(p, buf, 1);
+
+				print_num(stream, buf, len, t);
+			}
+
+			else if (t.spec == SPEC_f)
+			{
+				d = va_arg(argp, double);
+				len = double_to_buffer(d, buf, t);
+
+				print_num(stream, buf, len, t);
+			}
+
+			else if (t.spec == SPEC_E || t.spec == SPEC_e)
+			{
+				d = va_arg(argp, double);
+				len = doublesn_to_buffer(d, buf, t);
+
+				print_num(stream, buf, len, t);
+			}
+			else if (t.spec == SPEC_G || t.spec == SPEC_g)
+			{
+				// TODO: implement this
+			}
+			else if (t.spec == SPEC_n)
+			{
+				// TODO: implement this
+			}
+			else
+			{
+				// invalid specifier
+				err = 1;
+			}
+		}
+		else
+		{
+			fputc(*fmt, stream);
 		}
 
 		fmt++;

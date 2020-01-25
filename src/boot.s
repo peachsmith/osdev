@@ -63,9 +63,6 @@ stack_top:
 _start:
 
 	# The bootloader has loaded into 32-bit protected mode on x86.
-	# Interrupts are currently disabled.
-	# Paging is currently disabled.
-	# Floating point instructions have not yet been initialized.
  
 	# Set up the stack by moving the top of the stack into the stack pointer.
 	mov $stack_top, %esp
@@ -74,7 +71,7 @@ _start:
 	# a pointer to the multiboot info structure, so we push
 	# them onto the stack before calling initialization code
 	pushl %ebx
-	pushl %eax
+	#pushl %eax
 	
 	# initialize COM1
 	call com1_init
@@ -104,12 +101,12 @@ _start:
 	
 	
 	# Enable paging
-	call init_paging
+	# call init_paging
  
- 	movl $paging_msg, %eax
-	pushl %eax
-	call com1_writes
-	popl %eax
+ 	# movl $paging_msg, %eax
+	# pushl %eax
+	# call com1_writes
+	# popl %eax
  
  
  	movl $kernel_msg, %eax
@@ -117,16 +114,9 @@ _start:
 	call com1_writes
 	popl %eax
 	
-	# retrieve the multiboot data before entering the kernel
-	#movl -0x20(%ebp), %eax
-	#movl -0x18(%ebp), %ebx
-	
-	#pushl %ebx
-	#pushl %eax
-	
-	
+
 	# Enter the kernel
-	call kernel_main
+	call k_main
  
 	# If we've exited from the kernel,
 	# put the computer into an infinite loop.

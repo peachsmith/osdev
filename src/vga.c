@@ -4,11 +4,11 @@
 #include "libc/string.h"
 
 // VGA terminal dimensions
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
+#define WIDTH 80
+#define HEIGHT 25
 
 // Beginning of video memory for color monitors
-#define VGA_BUFFER_START 0xB8000
+#define BUFSTART 0xB8000
 
 /**
  * Builds an 8-bit byte containing the foreground and background colors of
@@ -23,7 +23,7 @@
  * Returns:
  *   uint8_t - an 8-bit unsigned integer
  */
-#define vga_make_color(f, b) (f | b << 4)
+#define make_color(f, b) (f | b << 4)
 
 /**
  * Builds a single VGA entry containing the character data and color.
@@ -35,35 +35,26 @@
  * Returns:
  *   uint16_t - VGA cell entry data
  */
-#define vga_make_entry(ch, co) ((uint16_t)ch | (uint16_t)co << 8)
+#define make_entry(ch, co) ((uint16_t)ch | (uint16_t)co << 8)
 
-static size_t vga_row;
-static size_t vga_col;
-static uint8_t vga_color;
-static uint16_t* vga_buffer;
+static size_t row;
+static size_t col;
+static uint8_t color;
+static uint16_t* buffer;
 
-void vga_set_cursor(uint8_t x, uint8_t y)
+void k_vga_init(void)
 {
-	uint16_t pos = y * VGA_WIDTH + x;
-	k_outb(0x3D4, 0x0F);
-	k_outb(0x3D5, (uint8_t)(pos & 0xFF));
-	k_outb(0x3D4, 0x0E);
-	k_outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
-}
+	row = 0;
+	col = 0;
+	color = make_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	buffer = (uint16_t*)BUFSTART;
 
-void vga_init(void)
-{
-	vga_row = 0;
-	vga_col = 0;
-	vga_color = vga_make_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	vga_buffer = (uint16_t*)VGA_BUFFER_START;
+	for (size_t y = 0; y < HEIGHT; y++) {
 
-	for (size_t y = 0; y < VGA_HEIGHT; y++) {
+		for (size_t x = 0; x < WIDTH; x++) {
 
-		for (size_t x = 0; x < VGA_WIDTH; x++) {
-
-			const size_t index = y * VGA_WIDTH + x;
-			vga_buffer[index] = vga_make_entry(' ', vga_color);
+			const size_t index = y * WIDTH + x;
+			buffer[index] = make_entry(' ', color);
 		}
 	}
 
@@ -74,38 +65,62 @@ void vga_init(void)
 	//k_outb(0x3D5, 0x0F);
 }
 
-void vga_set_color(uint8_t color)
+
+
+
+
+void vga_set_cursor(uint8_t x, uint8_t y)
 {
-	vga_color = color;
+	uint16_t pos = y * WIDTH + x;
+	k_outb(0x3D4, 0x0F);
+	k_outb(0x3D5, (uint8_t)(pos & 0xFF));
+	k_outb(0x3D4, 0x0E);
+	k_outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+
+
+void vga_set_color(uint8_t c)
+{
+	color = c;
 }
 
 void vga_put(char c, uint8_t color, size_t x, size_t y)
 {
-	const size_t index = y * VGA_WIDTH + x;
-	vga_buffer[index] = vga_make_entry(c, color);
+	const size_t index = y * WIDTH + x;
+	buffer[index] = make_entry(c, color);
 }
 
 void vga_putchar(char c)
 {
-	if (c == 0x0A)
+	// Handle newlines.
+	if (c == '\n')
 	{
-		if (vga_row < VGA_HEIGHT - 1)
+		if (row < HEIGHT - 1)
 		{
-			vga_row++;
-			vga_col = 0;
+			row++;
+			col = 0;
 		}
 
 		return;
 	}
 
-	vga_put(c, vga_color, vga_col, vga_row);
+	// Handle carriage returns.
+	if (c == '\r')
+	{
+		col = 0;
 
-	if (++vga_col == VGA_WIDTH) {
+		return;
+	}
 
-		vga_col = 0;
+	vga_put(c, color, col, row);
 
-		if (++vga_row == VGA_HEIGHT)
-			vga_row = 0;
+	if (++col == WIDTH) {
+
+		col = 0;
+
+		if (++row == HEIGHT)
+			row = 0;
 	}
 }
 
