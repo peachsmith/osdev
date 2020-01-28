@@ -2089,179 +2089,34 @@ int putchar(int c)
 
 int printf(const char* fmt, ...)
 {
-	va_list argp;         // argument pointer
-	size_t i, j;          // index
-	char* end;            // updated character pointer
-	char buf[BUF_LIMIT];  // string conversion buffer
-	size_t len;           // string length
-	int err;              // error flag
+	va_list arg; // argument list
+	int res;     // number of characters written
 
-	// Values to be printed
-	int n;          // integer
-    int n64;        // 64-bit integer
-	unsigned int u; // unsigned integer
-    uint64_t u64;   // unsigned 64-bit integer
-	uintptr_t p;    // unsigned pointer
-	double d;       // double
+	va_start(arg, fmt);
 
-	va_start(argp, fmt);
+	res = vfprintf(stdout, fmt, arg);
 
-	i = j = 0;
-	err = 0;
-	while (*fmt != '\0' && !err)
-	{
-		if (*fmt == '%')
-		{
-			fmt++;
-			ftag t = parse_format(fmt, &end);
-			fmt = end;
+	va_end(arg);
 
-			if (t.flags & FMT_WIDTH)
-				t.width = va_arg(argp, size_t);
-
-			if (t.flags & FMT_PREC)
-				t.prec = va_arg(argp, size_t);
-
-			if (t.spec == SPEC_per)
-			{
-				putchar('%');
-			}
-			else if (t.spec == SPEC_c)
-			{
-				char c = va_arg(argp, int);
-				putchar(c);
-			}
-			else if (t.spec == SPEC_s)
-			{
-				char* s = va_arg(argp, char*);
-				size_t len = strlen(s);
-
-				for (i = 0; i < len; i++)
-					putchar(s[i]);
-			}
-
-			// signed decimal integers
-			else if (t.spec == SPEC_d || t.spec == SPEC_i)
-			{
-				if (t.len & LEN_ll)
-                {
-                    n64 = va_arg(argp, int64_t);
-                    len = int64_to_buffer(n64, buf, t);
-                }
-                else
-                {
-                    n = va_arg(argp, int);
-				    len = int_to_buffer(n, buf, t);
-                }
-
-				print_num(stdout, buf, len, t);
-			}
-
-			// unsigned decimal integers
-			else if (t.spec == SPEC_u)
-			{
-                if (t.len & LEN_ll)
-                {
-                    u64 = va_arg(argp, uint64_t);
-                    len = int64_to_buffer(u64, buf, t);
-                }
-                else
-                {
-                    u = va_arg(argp, unsigned int);
-				    len = int_to_buffer(u, buf, t);
-                }
-
-				print_num(stdout, buf, len, t);
-			}
-
-			// unsigned hexadecimal integers
-			else if (t.spec == SPEC_X || t.spec == SPEC_x)
-			{
-				if (t.len & LEN_ll)
-                {
-                    u64 = va_arg(argp, int64_t);
-                    len = int64_to_buffer(u64, buf, t);
-                }
-                else
-                {
-                    u = va_arg(argp, int);
-				    len = int_to_buffer(u, buf, t);
-                }
-
-				print_num(stdout, buf, len, t);
-			}
-
-			// signed octal integers
-			else if (t.spec == SPEC_o)
-			{
-				if (t.len & LEN_ll)
-                {
-                    u64 = va_arg(argp, int64_t);
-                    len = int64_to_buffer(u64, buf, t);
-                }
-                else
-                {
-                    u = va_arg(argp, int);
-				    len = int_to_buffer(u, buf, t);
-                }
-
-				print_num(stdout, buf, len, t);
-			}
-
-			// pointers
-			else if (t.spec == SPEC_p)
-			{
-				p = va_arg(argp, uintptr_t);
-				len = uptr_to_buffer(p, buf, 1);
-
-				print_num(stdout, buf, len, t);
-			}
-
-			else if (t.spec == SPEC_f)
-			{
-				d = va_arg(argp, double);
-				len = double_to_buffer(d, buf, t);
-
-				print_num(stdout, buf, len, t);
-			}
-
-			else if (t.spec == SPEC_E || t.spec == SPEC_e)
-			{
-				d = va_arg(argp, double);
-				len = doublesn_to_buffer(d, buf, t);
-
-				print_num(stdout, buf, len, t);
-			}
-			else if (t.spec == SPEC_G || t.spec == SPEC_g)
-			{
-				// TODO: implement this
-			}
-			else if (t.spec == SPEC_n)
-			{
-				// TODO: implement this
-			}
-			else
-			{
-				// invalid specifier
-				err = 1;
-			}
-		}
-		else
-		{
-			putchar(*fmt);
-		}
-
-		fmt++;
-	}
-
-	va_end(argp);
-
-	return 1;
+	return res;
 }
 
 int fprintf(FILE* stream, const char* fmt, ...)
 {
-	va_list argp;         // argument pointer
+	va_list arg; // argument list
+	int res;     // number of characters written
+
+	va_start(arg, fmt);
+
+	res = vfprintf(stream, fmt, arg);
+
+	va_end(arg);
+
+	return res;
+}
+
+int vfprintf(FILE* stream, const char* fmt, va_list arg)
+{
 	size_t i, j;          // index
 	char* end;            // updated character pointer
 	char buf[BUF_LIMIT];  // string conversion buffer
@@ -2276,8 +2131,6 @@ int fprintf(FILE* stream, const char* fmt, ...)
 	uintptr_t p;    // unsigned pointer
 	double d;       // double
 
-	va_start(argp, fmt);
-
 	i = j = 0;
 	err = 0;
 	while (*fmt != '\0' && !err)
@@ -2288,128 +2141,142 @@ int fprintf(FILE* stream, const char* fmt, ...)
 			ftag t = parse_format(fmt, &end);
 			fmt = end;
 
+			// Get the width from the argument list
+			// if it's passed as an argument
 			if (t.flags & FMT_WIDTH)
-				t.width = va_arg(argp, size_t);
+				t.width = va_arg(arg, size_t);
 
+			// Get the precision from the argument list
+			// if it's passed as an argument
 			if (t.flags & FMT_PREC)
-				t.prec = va_arg(argp, size_t);
+				t.prec = va_arg(arg, size_t);
 
 			if (t.spec == SPEC_per)
 			{
+				// the % symbol
+
 				fputc('%', stream);
 			}
 			else if (t.spec == SPEC_c)
 			{
-				char c = va_arg(argp, int);
+				// characters
+
+				char c = va_arg(arg, int);
 				fputc(c, stream);
 			}
 			else if (t.spec == SPEC_s)
 			{
-				char* s = va_arg(argp, char*);
+				// strings
+
+				char* s = va_arg(arg, char*);
 				size_t len = strlen(s);
 
 				for (i = 0; i < len; i++)
 					fputc(s[i], stream);
 			}
-
-			// signed decimal integers
 			else if (t.spec == SPEC_d || t.spec == SPEC_i)
 			{
+				// signed decimal integers
+
 				if (t.len & LEN_ll)
                 {
-                    n64 = va_arg(argp, int64_t);
+                    n64 = va_arg(arg, int64_t);
                     len = int64_to_buffer(n64, buf, t);
                 }
                 else
                 {
-                    n = va_arg(argp, int);
+                    n = va_arg(arg, int);
 				    len = int_to_buffer(n, buf, t);
                 }
 
 				print_num(stream, buf, len, t);
 			}
-
-			// unsigned decimal integers
 			else if (t.spec == SPEC_u)
 			{
+				// unsigned decimal integers
+
                 if (t.len & LEN_ll)
                 {
-                    u64 = va_arg(argp, uint64_t);
+                    u64 = va_arg(arg, uint64_t);
                     len = int64_to_buffer(u64, buf, t);
                 }
                 else
                 {
-                    u = va_arg(argp, unsigned int);
+                    u = va_arg(arg, unsigned int);
 				    len = int_to_buffer(u, buf, t);
                 }
 
 				print_num(stream, buf, len, t);
 			}
-
-			// unsigned hexadecimal integers
 			else if (t.spec == SPEC_X || t.spec == SPEC_x)
 			{
+				// unsigned hexadecimal integers
+
 				if (t.len & LEN_ll)
                 {
-                    u64 = va_arg(argp, int64_t);
+                    u64 = va_arg(arg, int64_t);
                     len = int64_to_buffer(u64, buf, t);
                 }
                 else
                 {
-                    u = va_arg(argp, int);
+                    u = va_arg(arg, int);
 				    len = int_to_buffer(u, buf, t);
                 }
 
 				print_num(stream, buf, len, t);
 			}
-
-			// signed octal integers
 			else if (t.spec == SPEC_o)
 			{
+				// unsigned octal integers
+
 				if (t.len & LEN_ll)
                 {
-                    u64 = va_arg(argp, int64_t);
+                    u64 = va_arg(arg, int64_t);
                     len = int64_to_buffer(u64, buf, t);
                 }
                 else
                 {
-                    u = va_arg(argp, int);
+                    u = va_arg(arg, int);
 				    len = int_to_buffer(u, buf, t);
                 }
 
 				print_num(stream, buf, len, t);
 			}
-
-			// pointers
 			else if (t.spec == SPEC_p)
 			{
-				p = va_arg(argp, uintptr_t);
+				// pointers
+
+				p = va_arg(arg, uintptr_t);
 				len = uptr_to_buffer(p, buf, 1);
 
 				print_num(stream, buf, len, t);
 			}
-
 			else if (t.spec == SPEC_f)
 			{
-				d = va_arg(argp, double);
+				// floating point numbers
+
+				d = va_arg(arg, double);
 				len = double_to_buffer(d, buf, t);
 
 				print_num(stream, buf, len, t);
-			}
-
+			}			
 			else if (t.spec == SPEC_E || t.spec == SPEC_e)
 			{
-				d = va_arg(argp, double);
+				// scientific notation
+
+				d = va_arg(arg, double);
 				len = doublesn_to_buffer(d, buf, t);
 
 				print_num(stream, buf, len, t);
 			}
 			else if (t.spec == SPEC_G || t.spec == SPEC_g)
 			{
+				// shortest of e/E or f
 				// TODO: implement this
 			}
 			else if (t.spec == SPEC_n)
 			{
+				// the number of characters printed so far
 				// TODO: implement this
 			}
 			else
@@ -2426,7 +2293,6 @@ int fprintf(FILE* stream, const char* fmt, ...)
 		fmt++;
 	}
 
-	va_end(argp);
-
+	// TODO: return the number of characters written
 	return 1;
 }

@@ -1,7 +1,7 @@
 #ifndef JEP_K_STDIO_H
 #define JEP_K_STDIO_H
 
-
+#include <stdarg.h>
 
 /**
  * The buffer size used by setbuf.
@@ -53,10 +53,10 @@ FILE* k_get_iobuf(int id);
 #define __FILE_NO_STDERR 3
 #define __FILE_NO_STDDBG 4
 
-#define stdin k_get_iobuf(1)
-#define stdout k_get_iobuf(2)
-#define stderr k_get_iobuf(3)
-#define stddbg k_get_iobuf(4)
+#define stdin k_get_iobuf(__FILE_NO_STDIN)
+#define stdout k_get_iobuf(__FILE_NO_STDOUT)
+#define stderr k_get_iobuf(__FILE_NO_STDERR)
+#define stddbg k_get_iobuf(__FILE_NO_STDDBG)
 
 
 
@@ -107,13 +107,12 @@ int putchar(int c);
 
 /**
  * Writes a formatted string of characters to standard output.
- * This is the equivalent of calling fprintf and passing stdout as the first
+ * This function is like calling fprintf and passing stdout as the first
  * argument.
  *  
  * Params:
- *   FILE* - a FILE pointer
  *   const char* - a pointer to a string
- *   va_list - a list of arguments to be converted to strings
+ *   ... - variadic arguments
  *
  * Returns:
  *   int - the number of characters written, or -1 on failure
@@ -121,13 +120,34 @@ int putchar(int c);
 int printf(const char* fmt, ...);
 
 /**
- * Writes a formatted string of characters to stdout.
- * The first argument is a format string, and the remaining arguments
- * are values to be converted to strings and inserted into the output.
- * The placement and data type of each value is determined by a format tag.
- * For example, given the string literal "I have %d tomatoes.",
- * a call to printf("I have %d tomatoes.", 4) would write the string
- * "I have 4 tomatoes" to stdout.
+ * Writes a formatted string of characters to a file.
+ * This function is like calling vfprintf, but passing variadic arguments
+ * instead of an initialized va_list.
+ *  
+ * Params:
+ *   FILE* - a FILE pointer
+ *   const char* - a pointer to a string
+ *   ... - veriadic arguments
+ *
+ * Returns:
+ *   int - the number of characters written, or -1 on failure
+ */
+int fprintf(FILE* stream, const char* fmt, ...);
+
+/**
+ * Writes a formatted string of characters to a file.
+ * The first argument is a FILE pointer, indicating the destination of the
+ * output data.
+ * The second argument is the format string, which contains characters data
+ * potentially containing format tags that act as placeholders for data that
+ * will be converted to characters.
+ * The third arguments is a list of arguments.
+ * The argument list is expected to have been initialized by va_start before
+ * calling this function, and it is expected to be terminated by va_end
+ * after this function returns.
+ * 
+ * Upon success, this function returns the number of characters written.
+ * On failure, it returns -1.
  *
  * Format tags have the following structure:
  * %<flags><width><precision><length><specifier>
@@ -187,6 +207,6 @@ int printf(const char* fmt, ...);
  * Returns:
  *   int - the number of characters written, or -1 on failure
  */
-int fprintf(FILE* stream, const char* fmt, ...);
+int vfprintf(FILE* stream, const char* fmt, va_list arg);
 
 #endif

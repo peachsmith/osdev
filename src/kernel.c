@@ -17,6 +17,7 @@
 
 #include "libc/stdio.h"
 #include "libc/stdlib.h"
+#include "libc/string.h"
 
 void k_main(multiboot_info_t* mbi)
 {

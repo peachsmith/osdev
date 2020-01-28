@@ -51,6 +51,7 @@ uint32_t second_page_table[1024] __attribute__((aligned(4096)));
 extern void load_page_directory(uint32_t*);
 extern void enable_paging();
 
+
 void k_memory_init(multiboot_info_t* mbi)
 {
 	uint64_t base = 0x400000;   // 1 MiB
@@ -141,7 +142,9 @@ void k_memory_init(multiboot_info_t* mbi)
 	for (i = 0, j = 0, res = 0, pos = 0;
 		i < 1024 && res < 0x400000 && res < total && j < MEM_BLOCKS;)
 	{
-		if (pos < mem[j].len && mem[j].len - pos >= FRAME_LEN)
+		if (pos < mem[j].len
+			&& mem[j].len - pos >= FRAME_LEN
+			&& mem[j].addr + pos < 0xFFFFFFFF - FRAME_LEN)
 		{
 			second_page_table[i] = ((mem[j].addr + pos) ^ 0xFFF) | 3;
 			pos += FRAME_LEN;
@@ -162,7 +165,7 @@ void k_memory_init(multiboot_info_t* mbi)
 
 
 
-void* k_alloc()
+void* k_palloc()
 {
 	uint32_t v;   // virtual address
 	uint32_t di;  // directory index (which table use)
@@ -200,42 +203,6 @@ void* k_alloc()
 
 
 
-
-
-
-
-uint32_t dir_i = 0;   // directory index [0, 1023]
-uint32_t tab_i = 1; // table index     [0, 1023]
-uint32_t offset = 0;  // frame offset    [0, 4095]
-
-/**
- * The goal of this function is to construct a valid pointer to virtual memory.
- * There is currently only one page table with all of its 1024 entries
- * populated with identity mapping.
- * So the physical addresses 0x00 - 0x3FFFFF are mapped to the virtual
- * addresses 0x00 - 0x3FFFFF.
- */
-void* build_pointer(size_t n)
-{	
-	uint32_t v_addr; // a virtual address
-
-	// shift the 10 bit directory index to the left by 22	
-	v_addr = dir_i << 22;
-	
-	// OR the address with the 10-bit table index shifted to the left by 12
-	v_addr |= (tab_i << 12);
-	
-	// for now, we're only allowing allocation within one frame
-	// and not worrying about freeing memory
-	if (offset + n < 0xFFF)
-	{
-		v_addr |= offset;
-		offset += n;
-		return (void*)v_addr;
-	}
-	
-	return NULL;
-}
 
 void fprint_mmap(FILE* stream, multiboot_info_t* mbi)
 {

@@ -25,7 +25,7 @@ void* malloc(size_t n)
 
 	// Ensure that we have a page allocated
 	if (page == NULL)
-		page = k_alloc();
+		page = k_palloc();
 
 	// If we failed to allocate a page, return NULL
 	if (page == NULL)

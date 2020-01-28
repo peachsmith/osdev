@@ -11,20 +11,6 @@
  * The memory management interface.
  */
 
-/**
- * Enables paging.
- */
-//extern void init_paging();
-
-/**
- * Enables paging.
- */
-extern void enable_paging();
-
-/**
- * Disables paging.
- */
-extern void disable_paging();
 
 /**
  * Initializes the memory service.
@@ -37,7 +23,7 @@ void k_memory_init(multiboot_info_t* mbi);
  * Returns:
  *   void* - a pointer to virtual memory or NULL on failure
  */
-void* k_alloc();
+void* k_palloc();
 
 /**
  * Writes a Multiboot memory map to a stream.

@@ -1,9 +1,8 @@
 #include <stdint.h>
 
 #include "kernel/port.h"
-#include "kernel/vga.h"
 #include "kernel/pit.h"
-#include "kernel/serial.h"
+#include "libc/stdio.h"
 
 /**
  * A macro to put the computer into an infinite loop.
@@ -30,18 +29,18 @@ void k_pit_waitm(uint32_t m)
 
 void isr_0_handler()
 {
-	com1_writes("FAULT: Divide Error\n");
+	fprintf(stddbg, "FAULT: Divide Error\n");
 	HANG;
 }
 
 void isr_1_handler()
 {
-	com1_writes("FAULT/TRAP: Debug Exception\n");
+	fprintf(stddbg, "FAULT/TRAP: Debug Exception\n");
 }
 
 void isr_2_handler()
 {
-	com1_writes("INTERRUPT: NMI Interrupt\n");
+	fprintf(stddbg, "INTERRUPT: NMI Interrupt\n");
 }
 
 void isr_3_handler()
@@ -51,58 +50,58 @@ void isr_3_handler()
 
 void isr_4_handler()
 {
-	com1_writes("TRAP: Overflow\n");
+	fprintf(stddbg, "TRAP: Overflow\n");
 }
 
 void isr_5_handler()
 {
-	com1_writes("FAULT: BOUND Range Exceeded\n");
+	fprintf(stddbg, "FAULT: BOUND Range Exceeded\n");
 }
 
 void isr_6_handler()
 {
-	com1_writes("FAULT: Invalid Opcode\n");
+	fprintf(stddbg, "FAULT: Invalid Opcode\n");
 }
 
 void isr_7_handler()
 {
-	com1_writes("FAULT: Device Not Available\n");
+	fprintf(stddbg, "FAULT: Device Not Available\n");
 }
 
 void isr_8_handler()
 {
-	com1_writes("ABORT: Double Fault\n");
+	fprintf(stddbg, "ABORT: Double Fault\n");
 }
 
 void isr_9_handler()
 {
 	// Reserved
-	com1_writes("FAULT: Coprocessor Segment Overrun\n");
+	fprintf(stddbg, "FAULT: Coprocessor Segment Overrun\n");
 }
 
 void isr_10_handler()
 {
-	com1_writes("FAULT: Invalid TSS\n");
+	fprintf(stddbg, "FAULT: Invalid TSS\n");
 }
 void isr_11_handler()
 {
-	com1_writes("FAULT: Segment Not Present\n");
+	fprintf(stddbg, "FAULT: Segment Not Present\n");
 }
 
 void isr_12_handler()
 {
-	com1_writes("FAULT: Stack Segment Fault\n");
+	fprintf(stddbg, "FAULT: Stack Segment Fault\n");
 }
 
 void isr_13_handler()
 {
-	com1_writes("FAULT: General Protection\n");
+	fprintf(stddbg, "FAULT: General Protection\n");
 	HANG;
 }
 
 void isr_14_handler()
 {
-	com1_writes("FAULT: Page Fault\n");
+	fprintf(stddbg, "FAULT: Page Fault\n");
 	HANG;
 }
 
@@ -113,27 +112,27 @@ void isr_15_handler()
 
 void isr_16_handler()
 {
-	com1_writes("FAULT: x87 FPU Floating Point Error\n");
+	fprintf(stddbg, "FAULT: x87 FPU Floating Point Error\n");
 }
 
 void isr_17_handler()
 {
-	com1_writes("FAULT: Alignment Check\n");
+	fprintf(stddbg, "FAULT: Alignment Check\n");
 }
 
 void isr_18_handler()
 {
-	com1_writes("ABORT: Machine Check\n");
+	fprintf(stddbg, "ABORT: Machine Check\n");
 }
 
 void isr_19_handler()
 {
-	com1_writes("FAULT: SIMD Floating Point Exception\n");
+	fprintf(stddbg, "FAULT: SIMD Floating Point Exception\n");
 }
 
 void isr_20_handler()
 {
-	com1_writes("FAULT: Virtualization Exception\n");
+	fprintf(stddbg, "FAULT: Virtualization Exception\n");
 }
 
 void isr_21_handler()
@@ -203,6 +202,10 @@ void irq_0_handler()
 
 void irq_1_handler()
 {
+	uint8_t b = k_inb(0x60);
+
+	fprintf(stddbg, "key: %X\n", b);
+
 	k_outb(0x20, 0x20);
 }
 
