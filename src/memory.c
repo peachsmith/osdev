@@ -3,10 +3,20 @@
 
 
 
-
+// constructs a 64-bit integer from two 32-bit integers
 #define cat64(h,l) (((uint64_t)h << 32) |(uint64_t)l)
+
+// number of blocks of memory to reserver from the memory map
 #define MEM_BLOCKS 10
+
+// number of bytes in a page frame
 #define FRAME_LEN 4096
+
+// number of entries in a page table
+#define PT_SIZE 1024
+
+// number of tables in a page directory
+#define PD_SIZE 1024
 
 
 typedef multiboot_memory_map_t k_mmap;
@@ -16,32 +26,25 @@ typedef struct k_mem {
 	uint64_t len;
 }k_mem;
 
-/**
- * Memory available for dynamic allocation
- */
+// memory available for dynamic allocation
 k_mem mem[MEM_BLOCKS];
 
-/**
- * Number of memory blocks available
- */
+// number of memory blocks available
 size_t mem_count = 0;
 
+// number of pages in the second page table
+size_t p2_count = 0;
 
+// number of pages allocated from the second page table
+size_t p2_res = 0;
 
-
-/**
- * The page directory
- */
+// the primary page directory
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 
-/**
- * The first page table
- */
+// the first page table
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
 
-/**
- * The second page table
- */
+// the second page table
 uint32_t second_page_table[1024] __attribute__((aligned(4096)));
 
 
@@ -128,9 +131,9 @@ void k_memory_init(multiboot_info_t* mbi)
 		total += mem[i].len;
 
 	if (total < length)
-		printf("failed to allocate 4 MiB of memory\n");
+		fprintf(stddbg, "failed to allocate 4 MiB of memory\n");
 	else
-		printf("reserved %llu bytes of memory\n", total);
+		fprintf(stddbg, "reserved %llu bytes of memory\n", total);
 
 	// Fill the second page table with entries that map memory
 	// above physical address 0x400000.
@@ -140,10 +143,11 @@ void k_memory_init(multiboot_info_t* mbi)
 	{
 		if (pos < mem[j].len && mem[j].len - pos >= FRAME_LEN)
 		{
-			second_page_table[i] = ((mem[j].addr + pos) & 0x1000) | 3;
+			second_page_table[i] = ((mem[j].addr + pos) ^ 0xFFF) | 3;
 			pos += FRAME_LEN;
 			res += FRAME_LEN;
 			i++;
+			p2_count++;
 		}
 		else
 		{
@@ -157,11 +161,48 @@ void k_memory_init(multiboot_info_t* mbi)
 }
 
 
-void* k_alloc(size_t n)
+
+void* k_alloc()
 {
-	// TODO: implement this
+	uint32_t v;   // virtual address
+	uint32_t di;  // directory index (which table use)
+	uint32_t ti;  // table index (which page to use)
+
+	// For now, all page allocations will come from the
+	// second page table in the page directory.
+	di = 1;
+
+	if (p2_res < p2_count && p2_res < PT_SIZE)
+	{
+		// Here is where we construct a virtual address.
+		ti = (uint32_t)p2_res;
+
+		// The 10 most significant bits are the index of the
+		// page table within the page directory.
+		v = di << 22;
+
+		// The next 10 bits are the index of the page in the
+		// page table.
+		v |= (ti << 12);
+
+		// The remaining 12 bits are the offset. These should
+		// be 0 since we're allocating an entire page.
+
+		// Increment the page reservation counter
+		p2_res++;
+
+		return (void*)v;
+	}
+
+	// We could not find an available page.
 	return NULL;
 }
+
+
+
+
+
+
 
 uint32_t dir_i = 0;   // directory index [0, 1023]
 uint32_t tab_i = 1; // table index     [0, 1023]

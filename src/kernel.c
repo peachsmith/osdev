@@ -16,9 +16,14 @@
 #include "kernel/multiboot.h"
 
 #include "libc/stdio.h"
+#include "libc/stdlib.h"
 
+void print_addr(void* a)
+{
+	uint32_t v = (uint32_t)a;
 
-
+	printf("%5d %5d %5d\n", (v & (0xFFC00000)), (v & (0x3FF000)), (v & 0xFFF));
+}
 
 void k_main(multiboot_info_t* mbi)
 {
@@ -29,6 +34,26 @@ void k_main(multiboot_info_t* mbi)
 	k_memory_init(mbi);
 
 	fprint_mmap(stdout, mbi);
+
+	// Attempt to allocate 4 bytes.
+	char* str = (char*)malloc(4);
+
+	if (str == NULL)
+	{
+		printf("failed to allocate 4 bytes\n");
+	}
+	else
+	{
+		print_addr((void*)str);
+
+		str[0] = 'A';
+		str[1] = 'B';
+		str[2] = 'C';
+		str[3] = '\0';
+
+		printf("dynamic string: %s\n", str);
+	}
+	
 
 	// Enter into the main loop.
 	done = 0;
