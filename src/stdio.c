@@ -2122,7 +2122,11 @@ int printf(const char* fmt, ...)
 			if (t.flags & FMT_PREC)
 				t.prec = va_arg(argp, size_t);
 
-			if (t.spec == SPEC_c)
+			if (t.spec == SPEC_per)
+			{
+				putchar('%');
+			}
+			else if (t.spec == SPEC_c)
 			{
 				char c = va_arg(argp, int);
 				putchar(c);
@@ -2290,7 +2294,11 @@ int fprintf(FILE* stream, const char* fmt, ...)
 			if (t.flags & FMT_PREC)
 				t.prec = va_arg(argp, size_t);
 
-			if (t.spec == SPEC_c)
+			if (t.spec == SPEC_per)
+			{
+				fputc('%', stream);
+			}
+			else if (t.spec == SPEC_c)
 			{
 				char c = va_arg(argp, int);
 				fputc(c, stream);

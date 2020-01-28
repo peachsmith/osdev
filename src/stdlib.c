@@ -14,7 +14,7 @@ void* page = NULL;
 // a bitmap to keep track of which bytes have been allocated
 uint8_t bitmap[512] = { 0 };
 
-#define check(b)  (bitmap[(b / 8)] &  (1 << (b % 8)))
+#define check(b)  (!(bitmap[(b / 8)] &  (1 << (b % 8))))
 #define mark(b)   (bitmap[(b / 8)] |= (1 << (b % 8)))
 #define unmark(b) (bitmap[(b / 8)] ^= (1 << (b % 8)))
 
@@ -37,8 +37,6 @@ void* malloc(size_t n)
 	{
 		if (check(i))
 		{
-			fprintf(stddbg, "We should at least be here %llu\n", i);
-
 			// Check if n consecutive bytes are available
 			for (j = i; j < FRAME_LEN && j - i < n && check(j); j++);
 
