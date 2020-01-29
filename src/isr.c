@@ -202,9 +202,9 @@ void irq_0_handler()
 
 void irq_1_handler()
 {
-	uint8_t b = k_inb(0x60);
+	//uint8_t b = k_inb(0x60);
 
-	fprintf(stddbg, "key: %X\n", b);
+	//fprintf(stddbg, "key: %X\n", b);
 
 	k_outb(0x20, 0x20);
 }
