@@ -2,6 +2,7 @@
 
 #include "kernel/port.h"
 #include "kernel/pit.h"
+#include "kernel/task.h"
 #include "libc/stdio.h"
 
 /**
@@ -12,6 +13,7 @@
 #define HANG for(;;)
 
 static volatile uint32_t ticks = 0;
+static volatile uint32_t main_ticks = 0;
 
 void k_pit_waits(uint32_t s)
 {
@@ -56,11 +58,13 @@ void isr_4_handler()
 void isr_5_handler()
 {
 	fprintf(stddbg, "FAULT: BOUND Range Exceeded\n");
+	HANG;
 }
 
 void isr_6_handler()
 {
 	fprintf(stddbg, "FAULT: Invalid Opcode\n");
+	HANG;
 }
 
 void isr_7_handler()
@@ -82,15 +86,18 @@ void isr_9_handler()
 void isr_10_handler()
 {
 	fprintf(stddbg, "FAULT: Invalid TSS\n");
+	HANG;
 }
 void isr_11_handler()
 {
 	fprintf(stddbg, "FAULT: Segment Not Present\n");
+	HANG;
 }
 
 void isr_12_handler()
 {
 	fprintf(stddbg, "FAULT: Stack Segment Fault\n");
+	HANG;
 }
 
 void isr_13_handler()
@@ -128,11 +135,13 @@ void isr_18_handler()
 void isr_19_handler()
 {
 	fprintf(stddbg, "FAULT: SIMD Floating Point Exception\n");
+	HANG;
 }
 
 void isr_20_handler()
 {
 	fprintf(stddbg, "FAULT: Virtualization Exception\n");
+	HANG;
 }
 
 void isr_21_handler()
@@ -192,12 +201,24 @@ void isr_31_handler()
 
 
 
-void irq_0_handler()
+void irq_0_handler(uint32_t tmp)
 {
 	if (ticks > 0)
 		ticks--;
 
+	main_ticks++;
+
+	// Send the EOI before doing task switch logic
+	// since we don't normally return from a task switch.
 	k_outb(0x20, 0x20);
+
+	if (main_ticks % 2000 == 0)
+	{
+		printf("tmp: %d\n", tmp);
+		//printf("eflags: [%8X] cs: [%8X] eip: [%8X] tmp: [%4X]\n", eflags, cs, eip, tmp);
+		//printf("here is where we would switch tasks\n");
+		//k_switch_task();
+	}
 }
 
 void irq_1_handler()

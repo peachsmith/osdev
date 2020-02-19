@@ -11,7 +11,26 @@ C_FLAGS=-c -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
 LNK_FLAGS=-ffreestanding -O2 -nostdlib
 
-OBJ=boot.o extract_float_sysv32.o port.o paging.o pit.o serial.o load_gdt.o load_idt.o gdt.o idt.o isr.o memory.o string.o vga.o kernel.o stdio.o stdlib.o ctype.o
+OBJ=boot.o \
+extract_float_sysv32.o \
+port.o \
+paging.o \
+pit.o \
+serial.o \
+load_gdt.o \
+load_idt.o \
+gdt.o \
+idt.o \
+isr.o \
+memory.o \
+string.o \
+vga.o \
+task.o \
+kernel.o \
+stdio.o \
+stdlib.o \
+ctype.o
+
 BIN=myos.bin
 ISO=myos.iso
 
@@ -33,6 +52,7 @@ build:
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/memory.c -o memory.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/string.c -o string.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/vga.c -o vga.o
+	$(CC) $(INC) $(C_FLAGS) $(SRC)/task.c -o task.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/kernel.c -o kernel.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/stdio.c -o stdio.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/stdlib.c -o stdlib.o

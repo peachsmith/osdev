@@ -43,6 +43,7 @@ size_t p2_res = 0;
 
 // the primary page directory
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
+uint32_t page_directory2[1024] __attribute__((aligned(4096)));
 
 // the first page table
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
@@ -54,140 +55,221 @@ uint32_t second_page_table[1024] __attribute__((aligned(4096)));
 extern void load_page_directory(uint32_t*);
 extern void enable_paging();
 
-void validate_rsdp(char* rsdp)
+
+struct k_rsdp {
+	uint8_t sig[8];
+	uint8_t check;
+	uint8_t oemid[6];
+	uint8_t rev;
+	uint8_t rsdt[4];
+
+	// ACPI version 2.0
+	uint8_t len[4];
+	uint8_t xsdt[8];
+	uint8_t xcheck;
+	uint8_t res[3];
+}__attribute__((packed));
+
+// The RSDP structure
+struct k_rsdp rsdp_s;
+
+/**
+ * Reads the contents of the RSDP structure from memory.
+ * 
+ * Params:
+ *   uint8_t* - a pointer to a possible RSDP location
+ *   struct k_rsdp* - a pointer to an RSDP structure to be populated
+ */
+void read_rsdp(uint8_t* rsdp_mem, struct k_rsdp* rsdp)
 {
-	size_t i;
-	unsigned char check;    // checksum
-	unsigned char oemid[6]; // OEIM string
-	unsigned char rev;      // revision number
-	unsigned char rsdt[4];  // 32-bit physical address of RSDT
+	size_t i, j; // index variables
 
-	unsigned char len[4];   // size of the table in bytes
-	unsigned char xsdt[8];  // 64-bit physical address of XSDT
-	unsigned char xcheck;   // extended checksum
+	// NOTE: According to the ACPI spec,
+	// all multi-byte numeric values are in little endian byte order.
 
-	// The end of the RSDP structure contains 3 reserved bytes.
-	unsigned char reserved[3];
+	// Read the signature
+	for (i = 0, j = 0; i < 8; i++)
+		rsdp->sig[j++] = rsdp_mem[i];
 
-	// according to the ACPI spec,
-	// all multi-byte numeric values are in little endian
+	// Read the checksum
+	rsdp->check = rsdp_mem[i++];
 
-	check = *(rsdp + 8);
+	// Read the OEMID
+	for (j = 0; i < 15; i++)
+		rsdp->oemid[j++] = rsdp_mem[i];
 
-	oemid[0] = *(rsdp + 9);
-	oemid[1] = *(rsdp + 10);
-	oemid[2] = *(rsdp + 11);
-	oemid[3] = *(rsdp + 12);
-	oemid[4] = *(rsdp + 13);
-	oemid[5] = *(rsdp + 14);
+	// Read the revision number
+	rsdp->rev = rsdp_mem[i++];
 
-	rev = *(rsdp + 15);
+	// Read the RSDT address
+	for (j = 0; i < 20; i++)
+		rsdp->rsdt[j++] = rsdp_mem[i];
 
-	rsdt[0] = *(rsdp + 16);
-	rsdt[1] = *(rsdp + 17);
-	rsdt[2] = *(rsdp + 18);
-	rsdt[3] = *(rsdp + 19);
-
-	if ( rev >= 2)
+	// If the revision number is >= 2,
+	// read the ACPI 2.0 data
+	if (rsdp->rev >= 2)
 	{
-		len[0] = *(rsdp + 20);
-		len[1] = *(rsdp + 21);
-		len[2] = *(rsdp + 22);
-		len[3] = *(rsdp + 23);
+		// Read the length
+		for (j = 0; i < 24; i++)
+			rsdp->len[j++] = rsdp_mem[i];
 
-		xsdt[0] = *(rsdp + 24);
-		xsdt[1] = *(rsdp + 25);
-		xsdt[2] = *(rsdp + 26);
-		xsdt[3] = *(rsdp + 27);
-		xsdt[4] = *(rsdp + 28);
-		xsdt[5] = *(rsdp + 29);
-		xsdt[6] = *(rsdp + 30);
-		xsdt[7] = *(rsdp + 31);
+		// Read the XSDT address
+		for (j = 0; i < 32; i++)
+			rsdp->xsdt[j++] = rsdp_mem[i];
 
-		xcheck = *(rsdp + 32);
+		// Read the extended checksum
+		rsdp->xcheck = rsdp_mem[i++];
+
+		// Read the reserved bytes
+		for (j = 0; i < 36; i++)
+			rsdp->res[j++] = rsdp_mem[i];
 	}
+}
 
-	unsigned char valid = check
-		+ (unsigned char)(rsdp[0])
-		+ (unsigned char)(rsdp[1])
-		+ (unsigned char)(rsdp[2])
-		+ (unsigned char)(rsdp[3])
-		+ (unsigned char)(rsdp[4])
-		+ (unsigned char)(rsdp[5])
-		+ (unsigned char)(rsdp[6])
-		+ (unsigned char)(rsdp[7])
-		+ oemid[0]
-		+ oemid[1]
-		+ oemid[2]
-		+ oemid[3]
-		+ oemid[4]
-		+ oemid[5]
-		+ rev
-		+ rsdt[0]
-		+ rsdt[1]
-		+ rsdt[2]
-		+ rsdt[3];
+/**
+ * Verifies the integrity of an RSDP structure by evaluating the checksum.
+ * 
+ * Params:
+ *   struct k_rsdp* - a pointer to an RSDP structure
+ * 
+ * Returns:
+ *   int - 1 if the RSDP structure is valid, otherwise 0
+ */
+int verify_rsdp(struct k_rsdp* rsdp)
+{
+	uint8_t sum;
 
-	fprintf(stddbg, "checksum verification: %d\n", valid);
+	// Verify the first 20 bytes
+	sum = rsdp->check
+		+ rsdp->sig[0]
+		+ rsdp->sig[1]
+		+ rsdp->sig[2]
+		+ rsdp->sig[3]
+		+ rsdp->sig[4]
+		+ rsdp->sig[5]
+		+ rsdp->sig[6]
+		+ rsdp->sig[7]
+		+ rsdp->oemid[0]
+		+ rsdp->oemid[1]
+		+ rsdp->oemid[2]
+		+ rsdp->oemid[3]
+		+ rsdp->oemid[4]
+		+ rsdp->oemid[5]
+		+ rsdp->rev
+		+ rsdp->rsdt[0]
+		+ rsdp->rsdt[1]
+		+ rsdp->rsdt[2]
+		+ rsdp->rsdt[3];
 
-	fprintf(stddbg, "OEMID: ");
-	for (i = 0; i < 6; i++)
-		fputc(oemid[i], stddbg);
+	// If the sum is not 0,
+	// then the structure is invalid.
+	if (sum != 0)
+		return 0;
+
+	// If the revision number is >= 2,
+	// include the rest of the bytes in the verification.
+	if (rsdp->rev >= 2)
+	{
+		sum = rsdp->check + rsdp->xcheck
+			+ rsdp->sig[0]
+			+ rsdp->sig[1]
+			+ rsdp->sig[2]
+			+ rsdp->sig[3]
+			+ rsdp->sig[4]
+			+ rsdp->sig[5]
+			+ rsdp->sig[6]
+			+ rsdp->sig[7]
+			+ rsdp->oemid[0]
+			+ rsdp->oemid[1]
+			+ rsdp->oemid[2]
+			+ rsdp->oemid[3]
+			+ rsdp->oemid[4]
+			+ rsdp->oemid[5]
+			+ rsdp->rev
+			+ rsdp->rsdt[0]
+			+ rsdp->rsdt[1]
+			+ rsdp->rsdt[2]
+			+ rsdp->rsdt[3]
+			+ rsdp->len[0]
+			+ rsdp->len[1]
+			+ rsdp->len[2]
+			+ rsdp->len[3]
+			+ rsdp->xsdt[0]
+			+ rsdp->xsdt[1]
+			+ rsdp->xsdt[2]
+			+ rsdp->xsdt[3]
+			+ rsdp->xsdt[4]
+			+ rsdp->xsdt[5]
+			+ rsdp->xsdt[6]
+			+ rsdp->xsdt[7];
+
+		// If the sum is not 0,
+		// then the strucutre is invalid.
+		if (sum != 0)
+			return 0;
+	}
 	
-	fputc('\n', stddbg);
+	return 1;
 }
 
-void check_ebda()
+int rsdp_search_ebda()
 {
-	uint32_t ebda_addr = *((uint16_t*)0x040E);
-	char* ebda = (char*)(ebda_addr);
+	uint8_t* mem;
 
-	while (ptou(ebda) < 0xA0000)
+	for (mem = (uint8_t*)0x040E; ptou(mem) < 0xA0000; mem++)
 	{
-		if (*ebda == 'R' && ptou(ebda) < 0xA0000 - 33)
+		if (*mem == 'R' && ptou(mem) < 0xA0000 - 36)
 		{
-			if (ebda[0] == 'R'
-				&& ebda[1] == 'S'
-				&& ebda[2] == 'D'
-				&& ebda[3] == ' '
-				&& ebda[4] == 'P'
-				&& ebda[5] == 'T'
-				&& ebda[6] == 'R'
-				&& ebda[7] == ' ')
+			if (mem[0] == 'R'
+				&& mem[1] == 'S'
+				&& mem[2] == 'D'
+				&& mem[3] == ' '
+				&& mem[4] == 'P'
+				&& mem[5] == 'T'
+				&& mem[6] == 'R'
+				&& mem[7] == ' ')
 			{
-				fprintf(stddbg, "found RSD PTR in EBDA\n");
-				validate_rsdp(ebda);
+				// Populate the RSDP structure
+				read_rsdp(mem, &rsdp_s);
+
+				// Verify the RSDP structure
+				if (verify_rsdp(&rsdp_s))
+					return 1;
 			}
 		}
-
-		ebda++;
 	}
+
+	return 0;
 }
 
-void check_e0000()
+int rsdp_search_e0000()
 {
-	char* str = (char*)0x000E0000;
+	uint8_t* mem; 
 
-	while ((uint32_t)str < 0x000FFFFF)
+	for (mem = (uint8_t*)0x000E0000; ptou(mem) < 0x000FFFFF; mem++)
 	{
-		if (*str == 'R' && ptou(str) < 0x000FFFFF - 33)
+		if (*mem == 'R' && ptou(mem) < 0x000FFFFF - 36)
 		{
-			if (str[0] == 'R'
-				&& str[1] == 'S'
-				&& str[2] == 'D'
-				&& str[3] == ' '
-				&& str[4] == 'P'
-				&& str[5] == 'T'
-				&& str[6] == 'R'
-				&& str[7] == ' ')
+			if (mem[0] == 'R'
+				&& mem[1] == 'S'
+				&& mem[2] == 'D'
+				&& mem[3] == ' '
+				&& mem[4] == 'P'
+				&& mem[5] == 'T'
+				&& mem[6] == 'R'
+				&& mem[7] == ' ')
 			{
-				fprintf(stddbg, "found RSD PTR in 0xE0000 to 0xF0000\n");
-				validate_rsdp(str);
+				// Populate the RSDP structure
+				read_rsdp(mem, &rsdp_s);
+
+				// Verify the RSDP structure
+				if (verify_rsdp(&rsdp_s))
+					return 1;
 			}
 		}
-
-		str++;
 	}
+
+	return 0;
 }
 
 void k_memory_init(multiboot_info_t* mbi)
@@ -202,11 +284,43 @@ void k_memory_init(multiboot_info_t* mbi)
 	uint64_t res;
 	uint64_t pos;
 	size_t i, j;
+	int found_rsdp;
+	uint32_t rsdt_addr;
 
 
-	// search for the RSDP
-	check_ebda();
-	check_e0000();
+	// First, we search for the RSDT pointer.
+	// ON legacy BIOS, we look in the EBDA and in the physical
+	// memory range from 0x000E0000 to 0x000FFFFF.
+	// On UEFI, we should search the EFI_SYSTEM_TABLE.
+	if (!(found_rsdp = rsdp_search_ebda()))
+		found_rsdp = rsdp_search_e0000();
+
+	
+		
+	if (found_rsdp)
+	{
+		rsdt_addr = (uint32_t)
+		(
+			(rsdp_s.rsdt[0])
+			| (rsdp_s.rsdt[1] << 8)
+			| (rsdp_s.rsdt[2] << 16)
+			| (rsdp_s.rsdt[3] << 24)
+		);
+
+		fprintf(stddbg, "RSDT address: %X\n", rsdt_addr);
+		fprintf(stddbg, "RSDP OEMID: %c%c%c%c%c%c\n",
+			rsdp_s.oemid[0],
+			rsdp_s.oemid[1],
+			rsdp_s.oemid[2],
+			rsdp_s.oemid[3],
+			rsdp_s.oemid[4],
+			rsdp_s.oemid[5]);
+	}
+	else
+	{
+		fprintf(stddbg, "could not find the RSDP structure\n");
+	}
+	
 
 
 	// First, we identity map the first 4 Mib of physical memory and
@@ -219,6 +333,7 @@ void k_memory_init(multiboot_info_t* mbi)
 		//   Write Enabled: It can be both read from and written to
 		//   Not Present: The page table is not present
 		page_directory[i] = 0x00000002;
+		page_directory2[i] = 0x00000002;
 	}
 
 	// Fill all 1024 entries in the first paging table (4 MB)
@@ -230,6 +345,7 @@ void k_memory_init(multiboot_info_t* mbi)
 
 	// Insert the first page table into the page directory.
 	page_directory[0] = ((uint32_t)first_page_table) | 3;
+	page_directory2[0] = ((uint32_t)first_page_table) | 3;
 
 	// Put the address of the page directory in the CR3 register.
 	load_page_directory(page_directory);
@@ -305,6 +421,7 @@ void k_memory_init(multiboot_info_t* mbi)
 
 	// Insert the second page table into the page directory.
 	page_directory[1] = ((uint32_t)second_page_table) | 3;
+	page_directory2[1] = ((uint32_t)second_page_table) | 3;
 }
 
 

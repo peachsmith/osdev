@@ -6,6 +6,7 @@
 // VGA terminal dimensions
 #define WIDTH 80
 #define HEIGHT 25
+#define BSIZE (WIDTH * HEIGHT)
 
 // Beginning of video memory for color monitors
 #define BUFSTART 0xB8000
@@ -101,6 +102,24 @@ void vga_putchar(char c)
 			row++;
 			col = 0;
 		}
+		else
+		{
+			for (size_t y = 0; y < HEIGHT - 1; y++)
+			{
+				for (size_t x = 0; x < WIDTH; x++)
+				{
+					buffer[y * WIDTH + x] = buffer[(y + 1) * WIDTH + x];
+				}
+			}
+
+			for (size_t x = 0; x < WIDTH; x++)
+			{
+				buffer[(HEIGHT - 1) * WIDTH + x] = make_entry(' ', color);
+			}
+
+			col = 0;
+		}
+		
 
 		return;
 	}

@@ -50,9 +50,35 @@ stack_top:
 
 .section .text
 
+.global read_eip
+
+# Retreives the value of the instruction pointer
+# Since the call instruction pushed the instruction pointer onto the stack,
+# we can pop it into the eax register and jump to it.
+# The System V ABI uses eax to hold return values, callers of this procedure
+# can obtain the value in C code.
+read_eip:
+	pop %eax
+	jmp %eax
+
+
+.global switch_to_task
+
+switch_to_task:
+	cli
+	movl %esp, %ebp
+	movl 8(%ebp), %ecx
+	movl 12(%ebp), %esp
+	movl 16(%ebp), %ebp
+	sti
+	#jmp *%ecx
+
+
 # The linker script specifies _start as the entry point into the kernel.
 .global _start
 .type _start, @function
+
+
 
 .extern com1_init   # implemented in serial.c
 .extern com1_writes # implemented in serial.c
@@ -67,11 +93,14 @@ _start:
 	# Set up the stack by moving the top of the stack into the stack pointer.
 	mov $stack_top, %esp
 	
-	# eax contains the multiboot magic number and ebx contains
-	# a pointer to the multiboot info structure, so we push
-	# them onto the stack before calling initialization code
+	# push the kernel's main function arguments onto the stack
+	# esp: stack pointer
+	# ebx: multiboot info structure
+	# eax: multiboot magic number
+	# this is like calling k_main(%eax, %ebx, %esp)
+	pushl %esp
 	pushl %ebx
-	#pushl %eax
+	pushl %eax
 	
 	# initialize COM1
 	call com1_init
