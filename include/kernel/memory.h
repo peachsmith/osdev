@@ -11,6 +11,8 @@
  * The memory management interface.
  */
 
+// number of bytes in a page frame
+#define JEP_FRAME_LEN 4096
 
 /**
  * Initializes the memory service.

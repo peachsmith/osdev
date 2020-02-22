@@ -15,9 +15,18 @@
 typedef struct k_task{
     uint32_t id;
     uint32_t status;
-    uint32_t esp;
+
+    uint32_t eflags;
+    uint32_t edi;
+    uint32_t esi;
     uint32_t ebp;
-    uint32_t eip;
+    uint32_t esp;
+    
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+
     struct k_task* next;
     void (*start)();
     
@@ -27,6 +36,14 @@ void k_move_stack(void* new_start, uint32_t size);
 
 void k_init_tasking();
 
-void k_switch_task();
+k_task* k_switch_task(uint32_t eflags,
+	uint32_t edi,
+	uint32_t esi,
+	uint32_t ebp,
+	uint32_t esp,
+	uint32_t ebx,
+	uint32_t edx,
+	uint32_t ecx,
+	uint32_t eax);
 
 #endif

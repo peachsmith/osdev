@@ -19,6 +19,7 @@ pit.o \
 serial.o \
 load_gdt.o \
 load_idt.o \
+task_switch.o \
 gdt.o \
 idt.o \
 isr.o \
@@ -44,6 +45,7 @@ build:
 	$(AS) $(SRC)/paging.s -o paging.o
 	$(AS) $(SRC)/load_gdt.s -o load_gdt.o
 	$(AS) $(SRC)/load_idt.s -o load_idt.o
+	$(AS) $(SRC)/task_switch.s -o task_switch.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/pit.c -o pit.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/serial.c -o serial.o
 	$(CC) $(INC) $(C_FLAGS) $(SRC)/gdt.c -o gdt.o

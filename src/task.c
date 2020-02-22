@@ -1,5 +1,7 @@
 #include "kernel/task.h"
 #include "kernel/pit.h"
+#include "kernel/memory.h"
+#include "kernel/vga.h"
 
 #include "libc/stdlib.h"
 #include "libc/stdio.h"
@@ -7,9 +9,6 @@
 
 // The initial starting point of the kernel stack
 extern uint32_t init_esp;
-
-// Gets the value of the instruction pointer
-extern uint32_t read_eip();
 
 // TODO: implement better memory management for copying and moving
 // stacks and virtual address spaces
@@ -21,39 +20,45 @@ volatile k_task* current_task = NULL;
 volatile k_task* task_queue = NULL;
 
 volatile k_task task_1;
-volatile k_task task_2;
-volatile k_task task_3;
 
-extern void switch_to_task(uint32_t eip, uint32_t esp, uint32_t ebp);
+volatile k_task task_a;
+volatile k_task task_b;
 
-void task_2_action()
+extern void start_task(uint32_t esp, uint32_t ebp, void (*start)());
+
+extern void switch_to_task(uint32_t eflags,
+	uint32_t edi,
+	uint32_t esi,
+	uint32_t ebp,
+	uint32_t esp,
+	uint32_t ebx,
+	uint32_t edx,
+	uint32_t ecx,
+	uint32_t eax);
+
+void* stack_a = NULL;
+void* stack_b = NULL;
+
+void task_a_action()
 {
-    //printf("This is task 2.\n");
     for(;;)
     {
-        //k_pit_waits(1);
-        //printf("This is still task 2.\n");
+        printf("This is task a.\n");
     }
-
-    // for(;;)
-    // {
-    //     printf("This is task 2\n");
-    // }
 }
 
-void task_3_action()
+void task_b_action()
 {
-    //printf("This is task 3.\n");
     for(;;)
     {
-        //k_pit_waits(1);
-        //printf("This is still task 3.\n");
+        printf("This is task b.\n");
     }
+}
 
-    // for(;;)
-    // {
-    //     printf("This is task 3\n");
-    // }
+void debug_hang()
+{
+    printf("This is a debug hang.\n");
+    for (;;);
 }
 
 void k_move_stack(void* new_start, uint32_t size)
@@ -100,7 +105,7 @@ void k_move_stack(void* new_start, uint32_t size)
     __asm__ volatile("mov %0, %%ebp" : : "r" (new_ebp));
 }
 
-void k_init_tasking()
+void k_init_tasking(uint32_t esp)
 {
     __asm__ volatile("cli");
 
@@ -112,112 +117,121 @@ void k_init_tasking()
     // current_task = task_queue;
     // current_task->id = 1;
     // current_task->esp = 0;
-    // current_task->ebp = 0;
+    // current_task->ebp = 0;uint32_t eflags,
     // current_task->eip = 0;
     // current_task->next = NULL;
     task_1.id = 1;
     task_1.status = JEP_TASK_RUNNING;
-    task_1.esp = 0;
+    task_1.esp = esp;
     task_1.ebp = 0;
-    task_1.eip = 0;
     task_1.next = NULL;
     task_1.start = NULL;
 
-    task_2.id = 2;
-    task_2.status = JEP_TASK_NEW;
-    task_2.esp = 0;
-    task_2.ebp = 0;
-    task_2.eip = 0;
-    task_2.next = NULL;
-    task_1.start = NULL;
+    if (stack_a == NULL)
+    {
+        stack_a = k_palloc();
+    }
 
-    task_3.id = 3;
-    task_3.status = JEP_TASK_NEW;
-    task_3.esp = 0;
-    task_3.ebp = 0;
-    task_3.eip = 0;
-    task_3.next = NULL;
-    task_1.start = NULL;
+    task_a.id = 2;
+    task_a.status = JEP_TASK_NEW;
+    task_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    task_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    task_a.next = NULL;
+    task_a.start = task_a_action;
+
+    if (stack_b == NULL)
+    {
+        stack_b = k_palloc();
+    }
+
+    task_b.id = 3;
+    task_b.status = JEP_TASK_NEW;
+    task_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    task_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    task_b.next = NULL;
+    task_b.start = task_b_action;
 
     current_task = &task_1;
 
     __asm__ volatile("sti");
 }
 
-void k_switch_task()
+k_task* k_switch_task(uint32_t eflags,
+	uint32_t edi,
+	uint32_t esi,
+	uint32_t ebp,
+	uint32_t esp,
+	uint32_t ebx,
+	uint32_t edx,
+	uint32_t ecx,
+	uint32_t eax)
 {
-    __asm__ volatile("cli");
-
-    uint32_t esp; // stack pointer
-    uint32_t ebp; // base pointer
-    uint32_t eip; // instruction pointer
-
     // If there is no current task,
     // then tasking has not yet been initialized.
     if (current_task == NULL)
-        return;
-
-    // Read the current values of esp, ebp, and eip
-    //__asm__ volatile("mov %%esp, %0" : "=r" (esp));
-    //__asm__ volatile("mov %%ebp, %0" : "=r" (ebp));
-    //eip = read_eip();
+        return NULL;
         
-    // Update the esp, ebp, and eip of the current task
-    current_task->esp = esp;
+    // Update the stored CPU state of the current task.
+    current_task->eflags = eflags;
+    current_task->edi = edi;
+    current_task->esi = esi;
     current_task->ebp = ebp;
-    current_task->eip = eip;
+    current_task->esp = esp;
+    current_task->ebx = ebx;
+    current_task->edx = edx;
+    current_task->ecx = ecx;
+    current_task->eax = eax;
 
-    // Change which task is the current task.
-    // For now, we just alternate between two tasks
+    // Alternate between task a and task b.
     switch (current_task->id)
     {
-        case 1:
         case 2:
-            printf("switching to task 3\n");
-            current_task = &task_3;
+            current_task = &task_b;
             break;
 
+        case 1:
         case 3:
-            printf("switching to task 2\n");
-            current_task = &task_2;
+            current_task = &task_a;
             break;
 
         default:
             break;
     }
 
-    // Temporary code to initialize tasks
+    // If the current task is new, start it.
     if (current_task->status == JEP_TASK_NEW)
     {
-        switch (current_task->id)
-        {
-        case 2:
-            printf("initializing task 2\n");
-            current_task->esp = (uint32_t)(task_2_action);
-            current_task->ebp = (uint32_t)(task_2_action);
-            //current_task->eip = (uint32_t)(task_2_action);
-            break;
+            current_task->status = JEP_TASK_RUNNING;
 
-        case 3:
-            printf("initializing task 3\n");
-            current_task->esp = (uint32_t)(task_3_action);
-            current_task->ebp = (uint32_t)(task_3_action);
-            //current_task->eip = (uint32_t)(task_3_action);
-            break;
-        
-        default:
-            break;
-        }
+            // set esp and ebp
+            __asm__ volatile("movl %0, %%esp" : : "r"(current_task->esp));
+            __asm__ volatile("movl %0, %%ebp" : : "r"(current_task->ebp));
 
-        current_task->status = JEP_TASK_RUNNING;
+            // enable interrupts
+            __asm__ volatile("sti");
+
+            // start the task
+            current_task->start();
+
+            return NULL;
     }
 
-    // Get the esp, ebp, and eip of the next task
-    esp = current_task->esp;
-    ebp = current_task->ebp;
-    eip = current_task->eip;
+    printf("swapping registers\n");
 
-    printf("id: [%3d] ebp: [%-#12X] esp: [%-#12X] eip [%-#12X]\n", current_task->id, ebp, esp, eip);
+    return current_task;
 
-    switch_to_task(eip, esp, ebp);
+    // // Swap the registers.
+    // switch_to_task(
+    //     current_task->eflags,
+    //     current_task->edi,
+    //     current_task->esi,
+    //     current_task->ebp,
+    //     current_task->esp,
+    //     current_task->ebx,
+    //     current_task->edx,
+    //     current_task->ecx,
+    //     current_task->eax
+    // );
+
+    //printf("we at least made it this far\n");
 }

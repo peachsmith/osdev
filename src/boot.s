@@ -50,28 +50,6 @@ stack_top:
 
 .section .text
 
-.global read_eip
-
-# Retreives the value of the instruction pointer
-# Since the call instruction pushed the instruction pointer onto the stack,
-# we can pop it into the eax register and jump to it.
-# The System V ABI uses eax to hold return values, callers of this procedure
-# can obtain the value in C code.
-read_eip:
-	pop %eax
-	jmp %eax
-
-
-.global switch_to_task
-
-switch_to_task:
-	cli
-	movl %esp, %ebp
-	movl 8(%ebp), %ecx
-	movl 12(%ebp), %esp
-	movl 16(%ebp), %ebp
-	sti
-	#jmp *%ecx
 
 
 # The linker script specifies _start as the entry point into the kernel.

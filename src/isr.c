@@ -4,6 +4,7 @@
 #include "kernel/pit.h"
 #include "kernel/task.h"
 #include "libc/stdio.h"
+#include "libc/stdlib.h"
 
 /**
  * A macro to put the computer into an infinite loop.
@@ -13,13 +14,15 @@
 #define HANG for(;;)
 
 static volatile uint32_t ticks = 0;
-static volatile uint32_t main_ticks = 0;
 
 void k_pit_waits(uint32_t s)
 {
 	ticks = s * 1000;
 	
-	while(ticks);
+	while(ticks)
+	{
+		printf("ticks: %d\n");
+	}
 }
 
 void k_pit_waitm(uint32_t m)
@@ -201,7 +204,19 @@ void isr_31_handler()
 
 
 
-void irq_0_handler(uint32_t tmp)
+static volatile uint32_t main_ticks = 0;
+
+k_task* irq_0_handler(
+	uint32_t eflags,
+	uint32_t edi,
+	uint32_t esi,
+	uint32_t ebp,
+	uint32_t esp,
+	uint32_t ebx,
+	uint32_t edx,
+	uint32_t ecx,
+	uint32_t eax
+)
 {
 	if (ticks > 0)
 		ticks--;
@@ -212,13 +227,21 @@ void irq_0_handler(uint32_t tmp)
 	// since we don't normally return from a task switch.
 	k_outb(0x20, 0x20);
 
+	// Here is where we initiate a task switch
 	if (main_ticks % 2000 == 0)
 	{
-		printf("tmp: %d\n", tmp);
-		//printf("eflags: [%8X] cs: [%8X] eip: [%8X] tmp: [%4X]\n", eflags, cs, eip, tmp);
-		//printf("here is where we would switch tasks\n");
-		//k_switch_task();
+		return k_switch_task(eflags,
+			edi,
+			esi,
+			ebp,
+			esp,
+			ebx,
+			edx,
+			ecx,
+			eax);
 	}
+
+	return NULL;
 }
 
 void irq_1_handler()

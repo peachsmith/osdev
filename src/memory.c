@@ -12,9 +12,6 @@
 // number of blocks of memory to reserver from the memory map
 #define MEM_BLOCKS 10
 
-// number of bytes in a page frame
-#define FRAME_LEN 4096
-
 // number of entries in a page table
 #define PT_SIZE 1024
 
@@ -403,12 +400,12 @@ void k_memory_init(multiboot_info_t* mbi)
 		i < 1024 && res < 0x400000 && res < total && j < MEM_BLOCKS;)
 	{
 		if (pos < mem[j].len
-			&& mem[j].len - pos >= FRAME_LEN
-			&& mem[j].addr + pos < 0xFFFFFFFF - FRAME_LEN)
+			&& mem[j].len - pos >= JEP_FRAME_LEN
+			&& mem[j].addr + pos < 0xFFFFFFFF - JEP_FRAME_LEN)
 		{
 			second_page_table[i] = ((mem[j].addr + pos) ^ 0xFFF) | 3;
-			pos += FRAME_LEN;
-			res += FRAME_LEN;
+			pos += JEP_FRAME_LEN;
+			res += JEP_FRAME_LEN;
 			i++;
 			p2_count++;
 		}
