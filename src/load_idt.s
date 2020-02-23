@@ -312,35 +312,15 @@ isr_31:
 # IRQ handlers
 #-----------------------------------------------------------------------------
 
-.extern switch_to_task
+.global resume_irq0
 
 irq_0:
-
 	pushal
 	pushfl
 	call irq_0_handler
-
-	cmp $0, %eax
-	jz end_irq_0
-
-	pushl 8(%eax)
-	pushl 12(%eax)
-	pushl 16(%eax)
-	pushl 20(%eax)
-	pushl 24(%eax)
-	pushl 28(%eax)
-	pushl 32(%eax)
-	pushl 36(%eax)
-	pushl 40(%eax)
-	call switch_to_task
-
-	jmp end_task_switch
-
-end_irq_0:
 	popfl
 	popal
-
-end_task_switch:
+resume_irq0:
 	iret
  
 irq_1:

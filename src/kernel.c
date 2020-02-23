@@ -27,8 +27,6 @@ volatile uint32_t init_esp;
 
 void k_main(uint32_t magic, multiboot_info_t* mbi, uint32_t esp)
 {
-	uint8_t done;
-
 	init_esp = esp;
 	
 	k_vga_init();
@@ -40,9 +38,8 @@ void k_main(uint32_t magic, multiboot_info_t* mbi, uint32_t esp)
 	printf("stack location: %#X\n", esp);
 
 	// Enter into the main loop.
-	done = 0;
-	while (!done)
+	for(;;)
 	{
-	
+
 	}
 }

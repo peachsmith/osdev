@@ -10,23 +10,19 @@
 // The initial starting point of the kernel stack
 extern uint32_t init_esp;
 
-// TODO: implement better memory management for copying and moving
-// stacks and virtual address spaces
-
 // The currently running task
-volatile k_task* current_task = NULL;
+k_task* current_task = NULL;
 
-// The list of tasks
-volatile k_task* task_queue = NULL;
+k_task main_task;
+k_task task_a;
+k_task task_b;
 
-volatile k_task task_1;
+extern void k_cli();
+extern void k_sti();
 
-volatile k_task task_a;
-volatile k_task task_b;
+extern void start_kthread(uint32_t esp, uint32_t ebp, void (*start)());
 
-extern void start_task(uint32_t esp, uint32_t ebp, void (*start)());
-
-extern void switch_to_task(uint32_t eflags,
+extern void swap_kthread_regs(uint32_t eflags,
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -107,25 +103,14 @@ void k_move_stack(void* new_start, uint32_t size)
 
 void k_init_tasking(uint32_t esp)
 {
-    __asm__ volatile("cli");
+    k_cli();
 
-    // TODO: move the stack
-
-    // Create the first task
-    // task_queue = (k_task*)malloc(sizeof(k_task));
-
-    // current_task = task_queue;
-    // current_task->id = 1;
-    // current_task->esp = 0;
-    // current_task->ebp = 0;uint32_t eflags,
-    // current_task->eip = 0;
-    // current_task->next = NULL;
-    task_1.id = 1;
-    task_1.status = JEP_TASK_RUNNING;
-    task_1.esp = esp;
-    task_1.ebp = 0;
-    task_1.next = NULL;
-    task_1.start = NULL;
+    main_task.id = 1;
+    main_task.status = JEP_TASK_RUNNING;
+    main_task.esp = esp;
+    main_task.ebp = 0;
+    main_task.next = NULL;
+    main_task.start = NULL;
 
     if (stack_a == NULL)
     {
@@ -151,12 +136,12 @@ void k_init_tasking(uint32_t esp)
     task_b.next = NULL;
     task_b.start = task_b_action;
 
-    current_task = &task_1;
+    current_task = &main_task;
 
-    __asm__ volatile("sti");
+    k_sti();
 }
 
-k_task* k_switch_task(uint32_t eflags,
+void k_switch_task(uint32_t eflags,
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -169,7 +154,7 @@ k_task* k_switch_task(uint32_t eflags,
     // If there is no current task,
     // then tasking has not yet been initialized.
     if (current_task == NULL)
-        return NULL;
+        return;
         
     // Update the stored CPU state of the current task.
     current_task->eflags = eflags;
@@ -201,37 +186,32 @@ k_task* k_switch_task(uint32_t eflags,
     // If the current task is new, start it.
     if (current_task->status == JEP_TASK_NEW)
     {
-            current_task->status = JEP_TASK_RUNNING;
+        current_task->status = JEP_TASK_RUNNING;
 
-            // set esp and ebp
-            __asm__ volatile("movl %0, %%esp" : : "r"(current_task->esp));
-            __asm__ volatile("movl %0, %%ebp" : : "r"(current_task->ebp));
+        start_kthread(
+            current_task->esp,
+            current_task->ebp,
+            current_task->start
+        );
 
-            // enable interrupts
-            __asm__ volatile("sti");
-
-            // start the task
-            current_task->start();
-
-            return NULL;
+        return;
     }
 
-    printf("swapping registers\n");
+    // Swap the registers.
+    swap_kthread_regs(
+        current_task->eflags,
+        current_task->edi,
+        current_task->esi,
+        current_task->ebp,
+        current_task->esp,
+        current_task->ebx,
+        current_task->edx,
+        current_task->ecx,
+        current_task->eax
+    );
+}
 
-    return current_task;
-
-    // // Swap the registers.
-    // switch_to_task(
-    //     current_task->eflags,
-    //     current_task->edi,
-    //     current_task->esi,
-    //     current_task->ebp,
-    //     current_task->esp,
-    //     current_task->ebx,
-    //     current_task->edx,
-    //     current_task->ecx,
-    //     current_task->eax
-    // );
-
-    //printf("we at least made it this far\n");
+void task_debug()
+{
+    fprintf(stddbg, "resuming IRQ0 from task switch\n");
 }

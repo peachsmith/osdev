@@ -206,7 +206,7 @@ void isr_31_handler()
 
 static volatile uint32_t main_ticks = 0;
 
-k_task* irq_0_handler(
+void irq_0_handler(
 	uint32_t eflags,
 	uint32_t edi,
 	uint32_t esi,
@@ -230,7 +230,7 @@ k_task* irq_0_handler(
 	// Here is where we initiate a task switch
 	if (main_ticks % 2000 == 0)
 	{
-		return k_switch_task(eflags,
+		k_switch_task(eflags,
 			edi,
 			esi,
 			ebp,
@@ -240,8 +240,6 @@ k_task* irq_0_handler(
 			ecx,
 			eax);
 	}
-
-	return NULL;
 }
 
 void irq_1_handler()
