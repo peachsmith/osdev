@@ -17,16 +17,18 @@ typedef struct k_task{
     uint32_t status;
 
     uint32_t eflags;
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
+    uint32_t cs;
+    uint32_t eip;
     
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
     uint32_t eax;
-
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t ebx;
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esi;
+    uint32_t edi;
+    
     struct k_task* next;
     void (*start)();
     
@@ -38,7 +40,7 @@ void k_init_tasking();
 
 void task_debug();
 
-void k_switch_task(uint32_t eflags,
+k_task* k_switch_task(
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -46,6 +48,10 @@ void k_switch_task(uint32_t eflags,
 	uint32_t ebx,
 	uint32_t edx,
 	uint32_t ecx,
-	uint32_t eax);
+	uint32_t eax,
+    uint32_t eflags,
+    uint32_t cs,
+    uint32_t eip
+);
 
 #endif

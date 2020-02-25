@@ -39,7 +39,8 @@ void task_a_action()
 {
     for(;;)
     {
-        printf("This is task a.\n");
+        //printf("This is task a.\n");
+        //k_pit_waits(1);
     }
 }
 
@@ -47,7 +48,8 @@ void task_b_action()
 {
     for(;;)
     {
-        printf("This is task b.\n");
+        //printf("This is task b.\n");
+        //k_pit_waits(1);
     }
 }
 
@@ -141,7 +143,7 @@ void k_init_tasking(uint32_t esp)
     k_sti();
 }
 
-void k_switch_task(uint32_t eflags,
+k_task* k_switch_task(
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -149,15 +151,18 @@ void k_switch_task(uint32_t eflags,
 	uint32_t ebx,
 	uint32_t edx,
 	uint32_t ecx,
-	uint32_t eax)
+	uint32_t eax,
+    uint32_t eip,
+    uint32_t cs,
+    uint32_t eflags
+)
 {
     // If there is no current task,
     // then tasking has not yet been initialized.
     if (current_task == NULL)
-        return;
+        return NULL;
         
     // Update the stored CPU state of the current task.
-    current_task->eflags = eflags;
     current_task->edi = edi;
     current_task->esi = esi;
     current_task->ebp = ebp;
@@ -166,6 +171,9 @@ void k_switch_task(uint32_t eflags,
     current_task->edx = edx;
     current_task->ecx = ecx;
     current_task->eax = eax;
+    current_task->eip = eip;
+    current_task->cs = cs;
+    current_task->eflags = eflags;
 
     // Alternate between task a and task b.
     switch (current_task->id)
@@ -188,30 +196,32 @@ void k_switch_task(uint32_t eflags,
     {
         current_task->status = JEP_TASK_RUNNING;
 
+        fprintf(stddbg, "starting task %d, esp: %X, eip: %X, ebp: %X\n",
+        current_task->id,
+        current_task->esp,
+        current_task->eip,
+        current_task->ebp);
+
         start_kthread(
             current_task->esp,
             current_task->ebp,
             current_task->start
         );
 
-        return;
+        return NULL;
     }
 
-    // Swap the registers.
-    swap_kthread_regs(
-        current_task->eflags,
-        current_task->edi,
-        current_task->esi,
-        current_task->ebp,
+    //printf("we should eventually be here.\n");
+    fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
+        current_task->id,
         current_task->esp,
-        current_task->ebx,
-        current_task->edx,
-        current_task->ecx,
-        current_task->eax
-    );
+        current_task->eip,
+        current_task->ebp);
+
+    return current_task;
 }
 
 void task_debug()
 {
-    fprintf(stddbg, "resuming IRQ0 from task switch\n");
+    fprintf(stddbg, "Here is where we complete the task switch\n");
 }

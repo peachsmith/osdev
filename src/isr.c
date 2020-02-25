@@ -13,23 +13,22 @@
  */
 #define HANG for(;;)
 
-static volatile uint32_t ticks = 0;
+volatile uint32_t main_ticks = 0;
 
 void k_pit_waits(uint32_t s)
 {
-	ticks = s * 1000;
+	uint32_t ticks = s * 1000;
+	ticks = main_ticks + ticks;
 	
-	while(ticks)
-	{
-		printf("ticks: %d\n");
-	}
+	while(main_ticks < ticks);
 }
 
 void k_pit_waitm(uint32_t m)
 {
-	ticks = m;
+	uint32_t ticks = m;
+	ticks = main_ticks + ticks;
 	
-	while(ticks);
+	while(main_ticks < ticks);
 }
 
 void isr_0_handler()
@@ -103,9 +102,19 @@ void isr_12_handler()
 	HANG;
 }
 
-void isr_13_handler()
+void isr_13_handler(uint32_t err, uint32_t eip)
 {
-	fprintf(stddbg, "FAULT: General Protection\n");
+	
+	fprintf(stddbg, "FAULT: General Protection err: %X, eip: %X\n", err, eip);
+	if (err != 0)
+	{
+		//uint32_t index = 
+		//uint32_t table = ;
+		fprintf(stddbg, "Table: %d, index: %d\n",
+			(err & 6) >> 1,
+			(err & 0xFFFF) >> 3);
+	}
+
 	HANG;
 }
 
@@ -204,10 +213,8 @@ void isr_31_handler()
 
 
 
-static volatile uint32_t main_ticks = 0;
 
-void irq_0_handler(
-	uint32_t eflags,
+k_task* irq_0_handler(
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -215,11 +222,14 @@ void irq_0_handler(
 	uint32_t ebx,
 	uint32_t edx,
 	uint32_t ecx,
-	uint32_t eax
+	uint32_t eax,
+    uint32_t eip,
+    uint32_t cs,
+    uint32_t eflags
 )
 {
-	if (ticks > 0)
-		ticks--;
+	// if (ticks > 0)
+	// 	ticks--;
 
 	main_ticks++;
 
@@ -230,7 +240,7 @@ void irq_0_handler(
 	// Here is where we initiate a task switch
 	if (main_ticks % 2000 == 0)
 	{
-		k_switch_task(eflags,
+		return k_switch_task(
 			edi,
 			esi,
 			ebp,
@@ -238,8 +248,14 @@ void irq_0_handler(
 			ebx,
 			edx,
 			ecx,
-			eax);
+			eax,
+    		eip,
+    		cs,
+    		eflags
+		);
 	}
+
+	return NULL;
 }
 
 void irq_1_handler()

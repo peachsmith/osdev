@@ -5,7 +5,7 @@
 .global start_kthread
 .global swap_kthread_regs
 
-.extern resume_irq0
+#.extern resume_irq0
 
 
 k_cli:
@@ -93,4 +93,5 @@ swap_kthread_regs:
     movl -12(%ebp), %esp # update esp
     movl -8(%ebp), %ebp  # update ebp
 
-    jmp resume_irq0      # resume IRQ0
+    ret
+    #jmp resume_irq0      # resume IRQ0
