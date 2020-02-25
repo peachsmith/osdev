@@ -21,6 +21,7 @@
 #include "libc/stdlib.h"
 #include "libc/string.h"
 
+extern void k_sti();
 
 // The initial starting point of the kernel stack
 volatile uint32_t init_esp;
@@ -34,12 +35,15 @@ void k_main(uint32_t magic, multiboot_info_t* mbi, uint32_t esp)
 	k_memory_init(mbi);
 	k_init_tasking();
 
+	k_sti();
+
 	printf("magic: %#X\n", magic);
 	printf("stack location: %#X\n", esp);
 
 	// Enter into the main loop.
+	uint32_t local_kern = 9;
 	for(;;)
 	{
-
+		printf("This is the main kernel task. Local variable: %d\n", local_kern);
 	}
 }

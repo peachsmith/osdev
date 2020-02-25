@@ -38,9 +38,10 @@ void k_move_stack(void* new_start, uint32_t size);
 
 void k_init_tasking();
 
-void task_debug();
+void task_debug(uint32_t esp);
 
-k_task* k_switch_task(
+k_task* k_switch_task(uint32_t main_ticks,
+    uint32_t real_esp,
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -49,9 +50,9 @@ k_task* k_switch_task(
 	uint32_t edx,
 	uint32_t ecx,
 	uint32_t eax,
-    uint32_t eflags,
+    uint32_t eip,
     uint32_t cs,
-    uint32_t eip
+    uint32_t eflags
 );
 
 #endif

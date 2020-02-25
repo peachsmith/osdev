@@ -214,7 +214,8 @@ void isr_31_handler()
 
 
 
-k_task* irq_0_handler(
+uint32_t irq_0_handler(
+	uint32_t real_esp,
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -230,7 +231,7 @@ k_task* irq_0_handler(
 {
 	// if (ticks > 0)
 	// 	ticks--;
-
+	//fprintf(stddbg, "IRQ0 handler\n");
 	main_ticks++;
 
 	// Send the EOI before doing task switch logic
@@ -238,24 +239,36 @@ k_task* irq_0_handler(
 	k_outb(0x20, 0x20);
 
 	// Here is where we initiate a task switch
-	if (main_ticks % 2000 == 0)
-	{
-		return k_switch_task(
-			edi,
-			esi,
-			ebp,
-			esp,
-			ebx,
-			edx,
-			ecx,
-			eax,
-    		eip,
-    		cs,
-    		eflags
-		);
-	}
+	k_task* task = k_switch_task(main_ticks,
+		real_esp,
+		edi,
+		esi,
+		ebp,
+		esp,
+		ebx,
+		edx,
+		ecx,
+		eax,
+    	eip,
+    	cs,
+    	eflags
+	);
 
-	return NULL;
+	// if (task == NULL)
+	// {
+	// 	fprintf(stddbg, "the next task was somehow NULL\n");
+	// }
+	// else
+	// {
+	// 	fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
+    //     	task->id,
+    //     	task->esp,
+    //     	task->eip,
+    //     	task->ebp);
+	// }
+	
+
+	return task != NULL ? task->esp : (uint32_t)0;
 }
 
 void irq_1_handler()

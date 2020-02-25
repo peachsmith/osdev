@@ -7,6 +7,8 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
+static uint32_t initialized = 0;
+
 // The initial starting point of the kernel stack
 extern uint32_t init_esp;
 
@@ -37,18 +39,20 @@ void* stack_b = NULL;
 
 void task_a_action()
 {
+    uint32_t local_a = 4;
     for(;;)
     {
-        //printf("This is task a.\n");
+        printf("This is task a. Local variable: %d\n", local_a);
         //k_pit_waits(1);
     }
 }
 
 void task_b_action()
 {
+    uint32_t local_b = 7;
     for(;;)
     {
-        //printf("This is task b.\n");
+        printf("This is task b. Local variable: %d\n", local_b);
         //k_pit_waits(1);
     }
 }
@@ -103,13 +107,13 @@ void k_move_stack(void* new_start, uint32_t size)
     __asm__ volatile("mov %0, %%ebp" : : "r" (new_ebp));
 }
 
-void k_init_tasking(uint32_t esp)
+void k_init_tasking()
 {
     k_cli();
 
     main_task.id = 1;
     main_task.status = JEP_TASK_RUNNING;
-    main_task.esp = esp;
+    main_task.esp = 0;
     main_task.ebp = 0;
     main_task.next = NULL;
     main_task.start = NULL;
@@ -140,10 +144,14 @@ void k_init_tasking(uint32_t esp)
 
     current_task = &main_task;
 
+    initialized = 1;
+    fprintf(stddbg, "tasking has now supposedly been initialized\n");
+
     k_sti();
 }
 
-k_task* k_switch_task(
+k_task* k_switch_task(uint32_t main_ticks,
+    uint32_t real_esp,
 	uint32_t edi,
 	uint32_t esi,
 	uint32_t ebp,
@@ -157,16 +165,23 @@ k_task* k_switch_task(
     uint32_t eflags
 )
 {
+    // Use the esp parameter since ignoring it causes a warning.
+    if (esp){}
+
     // If there is no current task,
     // then tasking has not yet been initialized.
-    if (current_task == NULL)
+    if (current_task == NULL || initialized == 0)
+    {
+        fprintf(stddbg, "tasking has not yet been initialized\n");
+        //current_task = &main_task;
         return NULL;
-        
+    }
+
     // Update the stored CPU state of the current task.
     current_task->edi = edi;
     current_task->esi = esi;
     current_task->ebp = ebp;
-    current_task->esp = esp;
+    current_task->esp = real_esp;
     current_task->ebx = ebx;
     current_task->edx = edx;
     current_task->ecx = ecx;
@@ -174,6 +189,11 @@ k_task* k_switch_task(
     current_task->eip = eip;
     current_task->cs = cs;
     current_task->eflags = eflags;
+
+    // If it's not time to switch tasks,
+    // return the current task.
+    if (main_ticks % 2000 != 0)
+        return current_task;
 
     // Alternate between task a and task b.
     switch (current_task->id)
@@ -183,8 +203,11 @@ k_task* k_switch_task(
             break;
 
         case 1:
-        case 3:
             current_task = &task_a;
+            break;
+
+        case 3:
+            current_task = &main_task;
             break;
 
         default:
@@ -197,10 +220,11 @@ k_task* k_switch_task(
         current_task->status = JEP_TASK_RUNNING;
 
         fprintf(stddbg, "starting task %d, esp: %X, eip: %X, ebp: %X\n",
-        current_task->id,
-        current_task->esp,
-        current_task->eip,
-        current_task->ebp);
+            current_task->id,
+            current_task->esp,
+            current_task->eip,
+            current_task->ebp
+        );
 
         start_kthread(
             current_task->esp,
@@ -211,17 +235,17 @@ k_task* k_switch_task(
         return NULL;
     }
 
-    //printf("we should eventually be here.\n");
     fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
-        current_task->id,
-        current_task->esp,
-        current_task->eip,
-        current_task->ebp);
+            current_task->id,
+            current_task->esp,
+            current_task->eip,
+            current_task->ebp
+        );
 
     return current_task;
 }
 
-void task_debug()
+void task_debug(uint32_t esp)
 {
-    fprintf(stddbg, "Here is where we complete the task switch\n");
+    fprintf(stddbg, "new esp: %X\n", esp);
 }

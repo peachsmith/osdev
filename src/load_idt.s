@@ -343,37 +343,10 @@ end_scheduler:
 irq_0:
 
 	pushal
+	pushl %esp
 	call irq_0_handler
-
-	cmp $0, %eax      # check if there has been a task switch
-	jz end_irq_0      # if there was no task switch, jump to the end
-
-	addl $44, %esp    # discard the old registers
-
-	# push the new registers onto the stack
-
-	pushl 36(%eax)    # save esp for updating later
-
-	pushl 8(%eax)     # eflags
-	pushl 12(%eax)    # cs
-	pushl 16(%eax)    # eip
-	pushl 20(%eax)    # eax
-	pushl 24(%eax)    # ecx
-	pushl 28(%eax)    # edx
-	pushl 32(%eax)    # ebx
-	pushl 36(%eax)    # esp
-	pushl 40(%eax)    # ebp
-	pushl 44(%eax)    # esi
-	pushl 48(%eax)    # edi
-
+	movl %eax, %esp
 	popal
-	popl %esp         # update esp using the value we stored earlier
-	jmp end_task_switch
-
-end_irq_0:
-	popal
-	
-end_task_switch:
 	iret
  
 irq_1:
@@ -473,7 +446,7 @@ load_idt:
 	
 	mov 8(%ebp), %eax
 	lidt (%eax)
-	sti
+	#sti
 	
 	leave
 	ret

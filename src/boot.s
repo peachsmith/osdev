@@ -63,6 +63,7 @@ stack_top:
 .extern init_gdt    # implemented in gdt.c
 .extern init_idt    # implemented in idt.c
 .extern init_paging # implemented in paging.c
+.extern k_init_tasking
 
 _start:
 
@@ -79,6 +80,7 @@ _start:
 	pushl %esp
 	pushl %ebx
 	pushl %eax
+	
 	
 	# initialize COM1
 	call com1_init
@@ -97,15 +99,17 @@ _start:
 	call com1_writes
 	popl %eax
 	
+	
 
 	# Load the IDT
 	call init_idt
 	
-	movl $idt_msg, %eax
-	pushl %eax
-	call com1_writes
-	popl %eax
+	#movl $idt_msg, %eax
+	#pushl %eax
+	#call com1_writes
+	#popl %eax
 	
+	#cli
 	
 	# Enable paging
 	# call init_paging
@@ -114,7 +118,6 @@ _start:
 	# pushl %eax
 	# call com1_writes
 	# popl %eax
- 
  
  	movl $kernel_msg, %eax
 	pushl %eax
