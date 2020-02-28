@@ -184,49 +184,19 @@ void k_init_tasking()
     k_sti();
 }
 
-uint32_t k_switch_task(uint32_t main_ticks,
-    uint32_t real_esp
-	// uint32_t edi,
-	// uint32_t esi,
-	// uint32_t ebp,
-	// uint32_t esp,
-	// uint32_t ebx,
-	// uint32_t edx,
-	// uint32_t ecx,
-	// uint32_t eax,
-    // uint32_t eip,
-    // uint32_t cs,
-    // uint32_t eflags
-)
+uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
 {
-    // Use the esp parameter since ignoring it causes a warning.
-    //if (esp){}
 
     // If there is no current task,
     // then tasking has not yet been initialized.
     if (current_task == NULL || initialized == 0)
     {
         fprintf(stddbg, "tasking has not yet been initialized\n");
-        //current_task = &main_task;
         return 0;
     }
 
     // Update the stored CPU state of the current task.
     current_task->regs = (k_regs*)real_esp;
-    // current_task->edi = edi;
-    // current_task->esi = esi;
-    // current_task->ebp = ebp;
-    // current_task->esp = real_esp;
-    // current_task->ebx = ebx;
-    // current_task->edx = edx;
-    // current_task->ecx = ecx;
-    // current_task->eax = eax;
-    // current_task->eip = eip;
-    // current_task->cs = cs;
-    // current_task->eflags = eflags;
-
-    // if (ebp != 0)
-    //     fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
 
     // If it's not time to switch tasks,
     // return the current task.
