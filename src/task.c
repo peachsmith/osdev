@@ -146,6 +146,7 @@ void k_init_tasking()
     regs_a = (k_regs*)((uint32_t)stack_a + JEP_FRAME_LEN - sizeof(k_regs));
     regs_a->ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
     regs_a->eip = (uint32_t)task_a_action;
+    regs_a->cs = 0x08; // kernel code segment
 
     task_a.id = 2;
     task_a.status = JEP_TASK_NEW;
@@ -167,6 +168,7 @@ void k_init_tasking()
     regs_b = (k_regs*)((uint32_t)stack_b + JEP_FRAME_LEN - sizeof(k_regs));
     regs_b->ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
     regs_b->eip = (uint32_t)task_b_action;
+    regs_b->cs = 0x08; // kernel code segment
 
     task_b.id = 3;
     task_b.status = JEP_TASK_NEW;
@@ -198,12 +200,22 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
     // Update the stored CPU state of the current task.
     current_task->regs = (k_regs*)real_esp;
 
+    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n",
+        (uint32_t)current_task->regs,
+        current_task->regs->eip,
+        current_task->regs->ebp
+    );
+
     // If it's not time to switch tasks,
     // return the current task.
     if (main_ticks % 2000 != 0)
         return (uint32_t)(current_task->regs);
 
-    // fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
+    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n",
+        (uint32_t)current_task->regs,
+        current_task->regs->eip,
+        current_task->regs->ebp
+    );
 
     // Alternate between task a and task b.
     switch (current_task->id)
@@ -237,16 +249,14 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
             current_task->regs->ebp
         );
 
+        // This is the cheap way of starting a thread.
+        // We want to build an ISR stack that iret can pop
+        // to resume execution at the beginning of a new task.
         start_kthread(
             (uint32_t)(current_task->regs),
             current_task->regs->ebp,
             current_task->start
         );
-
-        // fprintf(stddbg, "whoops, we returned from starting a task\n");
-        // for(;;);
-
-        // return 0;
     }
     else
     {

@@ -221,6 +221,8 @@ uint32_t irq_0_handler(uint32_t real_esp)
 
 	main_ticks++;
 
+	fprintf(stddbg, "we should be here\n");
+
 	// Send the EOI before doing task switch logic
 	// since we don't normally return from a task switch.
 	k_outb(0x20, 0x20);
