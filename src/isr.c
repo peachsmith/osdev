@@ -214,19 +214,17 @@ void isr_31_handler()
 
 
 
-uint32_t irq_0_handler(uint32_t real_esp)
+uint32_t irq_0_handler(uint32_t esp)
 {
 	// if (ticks > 0)
 	// 	ticks--;
 
 	main_ticks++;
 
-	// Send the EOI before doing task switch logic
-	// since we don't normally return from a task switch.
 	k_outb(0x20, 0x20);
 
-	// Here is where we initiate a task switch
-	uint32_t next_esp = k_switch_task(main_ticks, real_esp);
+	// Select the next task.
+	uint32_t next_esp = k_switch_task(main_ticks, esp);
 
 	return next_esp;
 }

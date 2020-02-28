@@ -39,7 +39,7 @@ typedef struct k_task{
     uint32_t id;
     uint32_t status;
 
-    k_regs* regs;
+    k_regs* cpu_state;
     
     struct k_task* next;
     void (*start)();

@@ -26,18 +26,6 @@ k_regs* regs_b;
 extern void k_cli();
 extern void k_sti();
 
-extern void start_kthread(uint32_t esp, uint32_t ebp, void (*start)());
-
-extern void swap_kthread_regs(uint32_t eflags,
-	uint32_t edi,
-	uint32_t esi,
-	uint32_t ebp,
-	uint32_t esp,
-	uint32_t ebx,
-	uint32_t edx,
-	uint32_t ecx,
-	uint32_t eax);
-
 void* stack_a = NULL;
 void* stack_b = NULL;
 
@@ -130,7 +118,7 @@ void k_init_tasking()
 
     main_task.id = 1;
     main_task.status = JEP_TASK_RUNNING;
-    main_task.regs = &main_regs;
+    main_task.cpu_state = &main_regs;
     main_task.next = NULL;
     main_task.start = NULL;
 
@@ -150,7 +138,7 @@ void k_init_tasking()
 
     task_a.id = 2;
     task_a.status = JEP_TASK_NEW;
-    task_a.regs = regs_a;
+    task_a.cpu_state = regs_a;
     task_a.next = NULL;
     task_a.start = task_a_action;
 
@@ -170,7 +158,7 @@ void k_init_tasking()
 
     task_b.id = 3;
     task_b.status = JEP_TASK_NEW;
-    task_b.regs = regs_b;
+    task_b.cpu_state = regs_b;
     task_b.next = NULL;
     task_b.start = task_b_action;
 
@@ -182,7 +170,7 @@ void k_init_tasking()
     k_sti();
 }
 
-uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
+uint32_t k_switch_task(uint32_t main_ticks, uint32_t esp)
 {
 
     // If there is no current task,
@@ -194,36 +182,22 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
     }
 
     // Update the stored CPU state of the current task.
-    current_task->regs = (k_regs*)real_esp;
+    current_task->cpu_state = (k_regs*)esp;
 
-    fprintf(stddbg, "[DEBUG] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
-        (uint32_t)current_task->regs,
-        current_task->regs->eip,
-        current_task->regs->ebp,
-        current_task->regs->cs
-    );
-
-    // If it's not time to switch tasks,
-    // return the current task.
+    // We currently switch tasks approximately every 2 seconds.
+    // This logic is just for developing the task switch functionality.
     if (main_ticks % 2000 != 0)
-        return (uint32_t)(current_task->regs);
+        return (uint32_t)(current_task->cpu_state);
 
-    fprintf(stddbg, "[DEBUG] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
-        (uint32_t)current_task->regs,
-        current_task->regs->eip,
-        current_task->regs->ebp,
-        current_task->regs->cs
-    );
-
-    // Alternate between task a and task b.
+    // Alternate between tasks.
     switch (current_task->id)
     {
-        case 2:
-            current_task = &task_b;
-            break;
-
         case 1:
             current_task = &task_a;
+            break;
+
+        case 2:
+            current_task = &task_b;
             break;
 
         case 3:
@@ -234,38 +208,7 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
             break;
     }
 
-    // If the current task is new, start it.
-    if (current_task->status == JEP_TASK_NEW)
-    {
-        current_task->status = JEP_TASK_RUNNING;
-
-        fprintf(stddbg, "[START] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
-            (uint32_t)current_task->regs,
-            current_task->regs->eip,
-            current_task->regs->ebp,
-            current_task->regs->cs
-        );
-
-        // This is the cheap way of starting a thread.
-        // We want to build an ISR stack that iret can pop
-        // to resume execution at the beginning of a new task.
-        // start_kthread(
-        //     (uint32_t)(current_task->regs),
-        //     current_task->regs->ebp,
-        //     current_task->start
-        // );
-    }
-    else
-    {
-        fprintf(stddbg, "[SWTCH] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
-            (uint32_t)current_task->regs,
-            current_task->regs->eip,
-            current_task->regs->ebp,
-            current_task->regs->cs
-        );
-    }
-
-    return (uint32_t)(current_task->regs);
+    return (uint32_t)(current_task->cpu_state);
 }
 
 void task_debug()
