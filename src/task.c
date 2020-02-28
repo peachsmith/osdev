@@ -131,50 +131,46 @@ void k_init_tasking()
     main_task.id = 1;
     main_task.status = JEP_TASK_RUNNING;
     main_task.regs = &main_regs;
-    // main_task.esp = 0;
-    // main_task.ebp = 0;
     main_task.next = NULL;
     main_task.start = NULL;
+
+
 
     if (stack_a == NULL)
     {
         stack_a = k_palloc();
     }
 
-    // regs_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
-    // regs_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    // Create the initial CPU state for a new kernel thread.
     regs_a = (k_regs*)((uint32_t)stack_a + JEP_FRAME_LEN - sizeof(k_regs));
     regs_a->ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
     regs_a->eip = (uint32_t)task_a_action;
-    regs_a->cs = 0x08; // kernel code segment
+    regs_a->cs = 0x08;      // kernel code segment
+    regs_a->eflags = 0x200; // default eflags value
 
     task_a.id = 2;
     task_a.status = JEP_TASK_NEW;
     task_a.regs = regs_a;
-    // task_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
-    // task_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
     task_a.next = NULL;
     task_a.start = task_a_action;
+
+
 
     if (stack_b == NULL)
     {
         stack_b = k_palloc();
     }
 
-    // regs_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
-    // regs_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
-    // regs_b.eip = 0;
-
+    // Create the initial CPU state for a new kernel thread.
     regs_b = (k_regs*)((uint32_t)stack_b + JEP_FRAME_LEN - sizeof(k_regs));
     regs_b->ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
     regs_b->eip = (uint32_t)task_b_action;
-    regs_b->cs = 0x08; // kernel code segment
+    regs_b->cs = 0x08;      // kernel code segment
+    regs_b->eflags = 0x200; // default eflags value
 
     task_b.id = 3;
     task_b.status = JEP_TASK_NEW;
     task_b.regs = regs_b;
-    // task_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
-    // task_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
     task_b.next = NULL;
     task_b.start = task_b_action;
 
@@ -200,10 +196,11 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
     // Update the stored CPU state of the current task.
     current_task->regs = (k_regs*)real_esp;
 
-    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n",
+    fprintf(stddbg, "[DEBUG] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
         (uint32_t)current_task->regs,
         current_task->regs->eip,
-        current_task->regs->ebp
+        current_task->regs->ebp,
+        current_task->regs->cs
     );
 
     // If it's not time to switch tasks,
@@ -211,10 +208,11 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
     if (main_ticks % 2000 != 0)
         return (uint32_t)(current_task->regs);
 
-    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n",
+    fprintf(stddbg, "[DEBUG] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
         (uint32_t)current_task->regs,
         current_task->regs->eip,
-        current_task->regs->ebp
+        current_task->regs->ebp,
+        current_task->regs->cs
     );
 
     // Alternate between task a and task b.
@@ -225,7 +223,6 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
             break;
 
         case 1:
-        //case 3:
             current_task = &task_a;
             break;
 
@@ -242,37 +239,36 @@ uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp)
     {
         current_task->status = JEP_TASK_RUNNING;
 
-        fprintf(stddbg, "starting task %d, esp: %X, eip: %X, ebp: %X\n",
-            current_task->id,
-            (uint32_t)(current_task->regs),
+        fprintf(stddbg, "[START] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
+            (uint32_t)current_task->regs,
             current_task->regs->eip,
-            current_task->regs->ebp
+            current_task->regs->ebp,
+            current_task->regs->cs
         );
 
         // This is the cheap way of starting a thread.
         // We want to build an ISR stack that iret can pop
         // to resume execution at the beginning of a new task.
-        start_kthread(
-            (uint32_t)(current_task->regs),
-            current_task->regs->ebp,
-            current_task->start
-        );
+        // start_kthread(
+        //     (uint32_t)(current_task->regs),
+        //     current_task->regs->ebp,
+        //     current_task->start
+        // );
     }
     else
     {
-
-    fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
-            current_task->id,
-            (uint32_t)(current_task->regs),
+        fprintf(stddbg, "[SWTCH] esp: %8X, eip: %8X, ebp: %8X, cs: %X\n",
+            (uint32_t)current_task->regs,
             current_task->regs->eip,
-            current_task->regs->ebp
+            current_task->regs->ebp,
+            current_task->regs->cs
         );
     }
 
     return (uint32_t)(current_task->regs);
 }
 
-void task_debug(uint32_t esp)
+void task_debug()
 {
-    fprintf(stddbg, "new esp: %X\n", esp);
+    fprintf(stddbg, "We should be here.\n");
 }

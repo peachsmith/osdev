@@ -3,9 +3,6 @@
 .global k_cli
 .global k_sti
 .global start_kthread
-.global swap_kthread_regs
-
-#.extern resume_irq0
 
 
 k_cli:

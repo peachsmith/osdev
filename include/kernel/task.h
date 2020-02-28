@@ -50,7 +50,7 @@ void k_move_stack(void* new_start, uint32_t size);
 
 void k_init_tasking();
 
-void task_debug(uint32_t esp);
+void task_debug();
 
 uint32_t k_switch_task(uint32_t main_ticks, uint32_t real_esp);
 
