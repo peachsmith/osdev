@@ -19,6 +19,10 @@ k_task main_task;
 k_task task_a;
 k_task task_b;
 
+k_regs main_regs;
+k_regs* regs_a;
+k_regs* regs_b;
+
 extern void k_cli();
 extern void k_sti();
 
@@ -58,7 +62,12 @@ void task_b_action()
             printf("resetting tmp for task b\n");
             tmp = 0;
         }
-        printf("This is task b. Local variable: %d, tmp: %d\n", local_b, tmp);
+        if (tmp < 10000)
+            printf("This is task b. Local variable: %d, tmp: %d\n", local_b, tmp);
+        else if (tmp < 20000)
+            printf("The temporary variable in task b has exceeded 10000.\n");
+        else
+            printf("The temporary variable in task b has exceeded 20000.\n");
     }
 }
 
@@ -116,10 +125,14 @@ void k_init_tasking()
 {
     k_cli();
 
+    main_regs.esp = 0;
+    main_regs.ebp = 0;
+
     main_task.id = 1;
     main_task.status = JEP_TASK_RUNNING;
-    main_task.esp = 0;
-    main_task.ebp = 0;
+    main_task.regs = &main_regs;
+    // main_task.esp = 0;
+    // main_task.ebp = 0;
     main_task.next = NULL;
     main_task.start = NULL;
 
@@ -128,10 +141,17 @@ void k_init_tasking()
         stack_a = k_palloc();
     }
 
+    // regs_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    // regs_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    regs_a = (k_regs*)((uint32_t)stack_a + JEP_FRAME_LEN - sizeof(k_regs));
+    regs_a->ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    regs_a->eip = (uint32_t)task_a_action;
+
     task_a.id = 2;
     task_a.status = JEP_TASK_NEW;
-    task_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
-    task_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    task_a.regs = regs_a;
+    // task_a.esp = (uint32_t)stack_a + JEP_FRAME_LEN;
+    // task_a.ebp = (uint32_t)stack_a + JEP_FRAME_LEN;
     task_a.next = NULL;
     task_a.start = task_a_action;
 
@@ -140,10 +160,19 @@ void k_init_tasking()
         stack_b = k_palloc();
     }
 
+    // regs_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    // regs_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    // regs_b.eip = 0;
+
+    regs_b = (k_regs*)((uint32_t)stack_b + JEP_FRAME_LEN - sizeof(k_regs));
+    regs_b->ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    regs_b->eip = (uint32_t)task_b_action;
+
     task_b.id = 3;
     task_b.status = JEP_TASK_NEW;
-    task_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
-    task_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    task_b.regs = regs_b;
+    // task_b.esp = (uint32_t)stack_b + JEP_FRAME_LEN;
+    // task_b.ebp = (uint32_t)stack_b + JEP_FRAME_LEN;
     task_b.next = NULL;
     task_b.start = task_b_action;
 
@@ -155,23 +184,23 @@ void k_init_tasking()
     k_sti();
 }
 
-k_task* k_switch_task(uint32_t main_ticks,
-    uint32_t real_esp,
-	uint32_t edi,
-	uint32_t esi,
-	uint32_t ebp,
-	uint32_t esp,
-	uint32_t ebx,
-	uint32_t edx,
-	uint32_t ecx,
-	uint32_t eax,
-    uint32_t eip,
-    uint32_t cs,
-    uint32_t eflags
+uint32_t k_switch_task(uint32_t main_ticks,
+    uint32_t real_esp
+	// uint32_t edi,
+	// uint32_t esi,
+	// uint32_t ebp,
+	// uint32_t esp,
+	// uint32_t ebx,
+	// uint32_t edx,
+	// uint32_t ecx,
+	// uint32_t eax,
+    // uint32_t eip,
+    // uint32_t cs,
+    // uint32_t eflags
 )
 {
     // Use the esp parameter since ignoring it causes a warning.
-    if (esp){}
+    //if (esp){}
 
     // If there is no current task,
     // then tasking has not yet been initialized.
@@ -179,31 +208,32 @@ k_task* k_switch_task(uint32_t main_ticks,
     {
         fprintf(stddbg, "tasking has not yet been initialized\n");
         //current_task = &main_task;
-        return NULL;
+        return 0;
     }
 
     // Update the stored CPU state of the current task.
-    current_task->edi = edi;
-    current_task->esi = esi;
-    current_task->ebp = ebp;
-    current_task->esp = real_esp;
-    current_task->ebx = ebx;
-    current_task->edx = edx;
-    current_task->ecx = ecx;
-    current_task->eax = eax;
-    current_task->eip = eip;
-    current_task->cs = cs;
-    current_task->eflags = eflags;
+    current_task->regs = (k_regs*)real_esp;
+    // current_task->edi = edi;
+    // current_task->esi = esi;
+    // current_task->ebp = ebp;
+    // current_task->esp = real_esp;
+    // current_task->ebx = ebx;
+    // current_task->edx = edx;
+    // current_task->ecx = ecx;
+    // current_task->eax = eax;
+    // current_task->eip = eip;
+    // current_task->cs = cs;
+    // current_task->eflags = eflags;
 
-    if (ebp != 0)
-        fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
+    // if (ebp != 0)
+    //     fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
 
     // If it's not time to switch tasks,
     // return the current task.
     if (main_ticks % 2000 != 0)
-        return current_task;
+        return (uint32_t)(current_task->regs);
 
-    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
+    // fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
 
     // Alternate between task a and task b.
     switch (current_task->id)
@@ -213,13 +243,13 @@ k_task* k_switch_task(uint32_t main_ticks,
             break;
 
         case 1:
-        case 3:
+        //case 3:
             current_task = &task_a;
             break;
 
-        // case 3:
-        //     current_task = &main_task;
-        //     break;
+        case 3:
+            current_task = &main_task;
+            break;
 
         default:
             break;
@@ -232,31 +262,34 @@ k_task* k_switch_task(uint32_t main_ticks,
 
         fprintf(stddbg, "starting task %d, esp: %X, eip: %X, ebp: %X\n",
             current_task->id,
-            current_task->esp,
-            current_task->eip,
-            current_task->ebp
+            (uint32_t)(current_task->regs),
+            current_task->regs->eip,
+            current_task->regs->ebp
         );
 
         start_kthread(
-            current_task->esp,
-            current_task->ebp,
+            (uint32_t)(current_task->regs),
+            current_task->regs->ebp,
             current_task->start
         );
 
-        fprintf(stddbg, "whoops, we returned from starting a task\n");
-        for(;;);
+        // fprintf(stddbg, "whoops, we returned from starting a task\n");
+        // for(;;);
 
-        return NULL;
+        // return 0;
+    }
+    else
+    {
+
+    fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
+            current_task->id,
+            (uint32_t)(current_task->regs),
+            current_task->regs->eip,
+            current_task->regs->ebp
+        );
     }
 
-    // fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
-    //         current_task->id,
-    //         current_task->esp,
-    //         current_task->eip,
-    //         current_task->ebp
-    //     );
-
-    return current_task;
+    return (uint32_t)(current_task->regs);
 }
 
 void task_debug(uint32_t esp)

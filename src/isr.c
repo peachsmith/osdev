@@ -215,18 +215,18 @@ void isr_31_handler()
 
 
 uint32_t irq_0_handler(
-	uint32_t real_esp,
-	uint32_t edi,
-	uint32_t esi,
-	uint32_t ebp,
-	uint32_t esp,
-	uint32_t ebx,
-	uint32_t edx,
-	uint32_t ecx,
-	uint32_t eax,
-    uint32_t eip,
-    uint32_t cs,
-    uint32_t eflags
+	uint32_t real_esp
+	// uint32_t edi,
+	// uint32_t esi,
+	// uint32_t ebp,
+	// uint32_t esp,
+	// uint32_t ebx,
+	// uint32_t edx,
+	// uint32_t ecx,
+	// uint32_t eax,
+    // uint32_t eip,
+    // uint32_t cs,
+    // uint32_t eflags
 )
 {
 	// if (ticks > 0)
@@ -239,22 +239,22 @@ uint32_t irq_0_handler(
 	k_outb(0x20, 0x20);
 
 	// Here is where we initiate a task switch
-	k_task* task = k_switch_task(main_ticks,
-		real_esp,
-		edi,
-		esi,
-		ebp,
-		esp,
-		ebx,
-		edx,
-		ecx,
-		eax,
-    	eip,
-    	cs,
-    	eflags
+	uint32_t next_esp = k_switch_task(main_ticks,
+		real_esp
+		// edi,
+		// esi,
+		// ebp,
+		// esp,
+		// ebx,
+		// edx,
+		// ecx,
+		// eax,
+    	// eip,
+    	// cs,
+    	// eflags
 	);
 
-	return task->esp;
+	return next_esp;
 }
 
 void irq_1_handler()

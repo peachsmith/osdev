@@ -1,0 +1,12 @@
+
+
+Acronyms
+--------
+CPL: Current Privilege Leve
+RPL: Requested Privilege Level
+DPL: Descriptor Privilege Leve
+GPR: general Purpose Register
+ISR: Interrupt Service Routine
+IRQ: Interrupt Request
+
+
