@@ -43,17 +43,22 @@ void task_a_action()
     for(;;)
     {
         printf("This is task a. Local variable: %d\n", local_a);
-        //k_pit_waits(1);
     }
 }
 
 void task_b_action()
 {
     uint32_t local_b = 7;
+    uint32_t tmp = 0;
     for(;;)
     {
-        printf("This is task b. Local variable: %d\n", local_b);
-        //k_pit_waits(1);
+        tmp++;
+        if (tmp > 2000000)
+        {
+            printf("resetting tmp for task b\n");
+            tmp = 0;
+        }
+        printf("This is task b. Local variable: %d, tmp: %d\n", local_b, tmp);
     }
 }
 
@@ -190,10 +195,15 @@ k_task* k_switch_task(uint32_t main_ticks,
     current_task->cs = cs;
     current_task->eflags = eflags;
 
+    if (ebp != 0)
+        fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
+
     // If it's not time to switch tasks,
     // return the current task.
     if (main_ticks % 2000 != 0)
         return current_task;
+
+    fprintf(stddbg, "esp: %8X, eip: %8X, ebp: %8X\n", esp, eip, ebp);
 
     // Alternate between task a and task b.
     switch (current_task->id)
@@ -203,12 +213,13 @@ k_task* k_switch_task(uint32_t main_ticks,
             break;
 
         case 1:
+        case 3:
             current_task = &task_a;
             break;
 
-        case 3:
-            current_task = &main_task;
-            break;
+        // case 3:
+        //     current_task = &main_task;
+        //     break;
 
         default:
             break;
@@ -232,15 +243,18 @@ k_task* k_switch_task(uint32_t main_ticks,
             current_task->start
         );
 
+        fprintf(stddbg, "whoops, we returned from starting a task\n");
+        for(;;);
+
         return NULL;
     }
 
-    fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
-            current_task->id,
-            current_task->esp,
-            current_task->eip,
-            current_task->ebp
-        );
+    // fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
+    //         current_task->id,
+    //         current_task->esp,
+    //         current_task->eip,
+    //         current_task->ebp
+    //     );
 
     return current_task;
 }

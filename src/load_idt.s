@@ -312,36 +312,7 @@ isr_31:
 # IRQ handlers
 #-----------------------------------------------------------------------------
 
-.extern k_switch_task
-
-begin_scheduler:
-
-	call k_switch_task
-	cmp $0, %eax      # check if there has been a task switch
-	jz end_scheduler # if there was no task switch, jump to the end
-
-	addl $44, %esp    # discard the old registers
-
-	# push the new registers onto the stack
-	pushl 8(%eax)     # eflags
-	pushl 12(%eax)    # cs
-	pushl 16(%eax)    # eip
-	pushl 20(%eax)    # eax
-	pushl 24(%eax)    # ecx
-	pushl 28(%eax)    # edx
-	pushl 32(%eax)    # ebx
-	pushl 36(%eax)    # esp
-	pushl 40(%eax)    # ebp
-	pushl 44(%eax)    # esi
-	pushl 48(%eax)    # edi
-
-end_scheduler:
-	ret
-
-.extern task_debug
-
 irq_0:
-
 	pushal
 	pushl %esp
 	call irq_0_handler

@@ -231,7 +231,7 @@ uint32_t irq_0_handler(
 {
 	// if (ticks > 0)
 	// 	ticks--;
-	//fprintf(stddbg, "IRQ0 handler\n");
+
 	main_ticks++;
 
 	// Send the EOI before doing task switch logic
@@ -254,21 +254,7 @@ uint32_t irq_0_handler(
     	eflags
 	);
 
-	// if (task == NULL)
-	// {
-	// 	fprintf(stddbg, "the next task was somehow NULL\n");
-	// }
-	// else
-	// {
-	// 	fprintf(stddbg, "switching to task %d, esp: %X, eip: %X, ebp: %X\n",
-    //     	task->id,
-    //     	task->esp,
-    //     	task->eip,
-    //     	task->ebp);
-	// }
-	
-
-	return task != NULL ? task->esp : (uint32_t)0;
+	return task->esp;
 }
 
 void irq_1_handler()
