@@ -8,5 +8,12 @@ DPL: Descriptor Privilege Leve
 GPR: general Purpose Register
 ISR: Interrupt Service Routine
 IRQ: Interrupt Request
+ACPI: Advanced Configuration and Power Interface
 
 
+TODO:
+-----
+Memory Management Interface
+Thread Interface
+Synchronization Primitives
+ACPICA
